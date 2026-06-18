@@ -11,10 +11,12 @@ export default function Dashboard() {
   const [participants, setParticipants] = useState([]);
   const [refresh, setRefresh] = useState(0);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
+        setLoading(true);
         setError("");
 
         const [kpiRes, participantRes] = await Promise.all([
@@ -22,15 +24,26 @@ export default function Dashboard() {
           getParticipants(),
         ]);
 
-        setKpis(kpiRes.data);
-        setParticipants(participantRes.data);
+        setKpis(kpiRes.data || {});
+
+        const participantData = Array.isArray(participantRes.data)
+          ? participantRes.data
+          : participantRes.data?.participants || [];
+
+        setParticipants(participantData);
       } catch (err) {
         console.error("Dashboard load failed:", err);
+
         setError(
           err.response?.data?.error ||
             err.response?.data?.details ||
+            err.message ||
             "Dashboard failed to load. Check backend admin routes and API key."
         );
+
+        setParticipants([]);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -45,9 +58,15 @@ export default function Dashboard() {
       setRefresh((x) => x + 1);
     } catch (err) {
       console.error("Erase failed:", err);
-      alert("Erase failed. Check backend console.");
+      alert(
+        err.response?.data?.error ||
+          err.response?.data?.details ||
+          "Erase failed. Check backend console."
+      );
     }
   };
+
+  const safeParticipants = Array.isArray(participants) ? participants : [];
 
   const cards = [
     ["Total Participants", kpis?.total ?? 0],
@@ -81,6 +100,12 @@ export default function Dashboard() {
           </a>
         </div>
       </div>
+
+      {loading && (
+        <div className="alert alert-light border">
+          Loading dashboard data...
+        </div>
+      )}
 
       {error && <div className="alert alert-danger">{error}</div>}
 
@@ -122,30 +147,41 @@ export default function Dashboard() {
             </thead>
 
             <tbody>
-              {participants.length === 0 ? (
+              {safeParticipants.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="text-muted text-center py-4">
                     No participants found yet.
                   </td>
                 </tr>
               ) : (
-                participants.map((p) => (
-                  <tr key={p.study_id}>
-                    <td className="small fw-semibold">{p.study_id}</td>
+                safeParticipants.map((p) => (
+                  <tr key={p.study_id || p._id}>
+                    <td className="small fw-semibold">
+                      {p.study_id || "-"}
+                    </td>
+
                     <td>{p.condition || "-"}</td>
+
                     <td>
                       <span className="badge text-bg-light border">
                         {p.status || "unknown"}
                       </span>
                     </td>
+
                     <td>{p.ageBand || "-"}</td>
+
                     <td>{p.aiExperience || "-"}</td>
+
                     <td className="small">
-                      {p.createdAt ? new Date(p.createdAt).toLocaleString() : "-"}
+                      {p.createdAt
+                        ? new Date(p.createdAt).toLocaleString()
+                        : "-"}
                     </td>
+
                     <td>
                       <button
                         className="btn btn-sm btn-outline-danger"
+                        disabled={!p.study_id}
                         onClick={() => erase(p.study_id)}
                       >
                         Erase
