@@ -18,3 +18,41 @@ body { background: var(--slate-bg); color: var(--ink); }
 .message.user { margin-left:auto; background: var(--indigo); color:white; }
 .message.assistant { margin-right:auto; background:#f3f4f6; color:#111827; }
 .timer-badge { font-variant-numeric: tabular-nums; font-weight:700; }
+/* Updated research-task experience */
+.task-sidebar { position: sticky; top: 1rem; min-height: calc(100vh - 2rem); }
+.stage-list { display: grid; gap: .65rem; margin: 1.25rem 0; }
+.stage-card { width: 100%; display: grid; grid-template-columns: 2rem 1fr; gap: .75rem; align-items: start; text-align: left; border: 1px solid var(--soft-border); background: white; border-radius: .9rem; padding: .8rem; color: var(--ink); }
+.stage-card > span { width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: #eef2ff; color: var(--indigo); font-weight: 800; }
+.stage-card small { display: block; color: #64748b; line-height: 1.3; margin-top: .15rem; }
+.stage-card.active { border-color: var(--indigo); background: #eef2ff; box-shadow: 0 0 0 .2rem rgba(79,70,229,.08); }
+.stage-card.done > span { background: #dcfce7; color: #166534; }
+.study-id-box { overflow-wrap: anywhere; background: #f8fafc; border: 1px solid var(--soft-border); border-radius: .75rem; padding: .8rem; }
+.study-id-box small,.study-id-box strong { display:block; }
+.chat-card { min-height: calc(100vh - 2rem); }
+.chat-header { display:flex; justify-content:space-between; gap:1rem; align-items:center; padding-bottom:1rem; border-bottom:1px solid var(--soft-border); }
+.chat-window { height: 62vh; scroll-behavior: smooth; }
+.message.assistant { line-height: 1.65; padding: 1rem 1.15rem; }
+.message.assistant h1,.message.assistant h2,.message.assistant h3 { font-size: 1.05rem; font-weight: 800; margin: .15rem 0 .65rem; }
+.message.assistant p { margin-bottom: .7rem; }
+.message.assistant p:last-child { margin-bottom:0; }
+.message.assistant ul,.message.assistant ol { padding-left:1.35rem; margin-bottom:.7rem; }
+.message.assistant li { margin-bottom:.35rem; }
+.message.assistant strong { font-weight:800; }
+.chat-composer { border:1px solid var(--soft-border); border-radius:1rem; padding:.65rem; background:white; }
+.chat-composer textarea { border:0; box-shadow:none!important; resize:vertical; }
+.composer-footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.35rem .35rem 0; }
+.typing-indicator { display:flex; align-items:center; gap:.35rem; color:#64748b; font-size:.85rem; padding:.7rem; }
+.typing-indicator span { width:.45rem; height:.45rem; border-radius:50%; background:#94a3b8; animation:pulse 1.1s infinite ease-in-out; }
+.typing-indicator span:nth-child(2){animation-delay:.15s}.typing-indicator span:nth-child(3){animation-delay:.3s}
+.typing-indicator em { margin-left:.3rem; }
+@keyframes pulse { 0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1)} }
+.tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:.6rem; }
+.tool-choice { display:flex; align-items:flex-start; gap:.55rem; border:1px solid var(--soft-border); border-radius:.75rem; padding:.7rem; background:white; }
+.literacy-item { border:0; border-top:1px solid var(--soft-border); padding:1.25rem 0; }
+.literacy-item legend { font-size:1rem; font-weight:650; }
+.likert-inline { display:grid; grid-template-columns:repeat(7,1fr); gap:.5rem; }
+.likert-inline label { display:grid; place-items:center; gap:.3rem; }
+.likert-inline span { width:2.3rem; height:2.3rem; border-radius:50%; display:grid; place-items:center; background:#f1f5f9; font-weight:700; }
+.likert-inline input:checked + span { background:var(--indigo); color:white; }
+@media(max-width:1199px){.task-sidebar{position:static;min-height:auto}.chat-card{min-height:auto}}
+@media(max-width:650px){.chat-header{align-items:flex-start;flex-direction:column}.composer-footer{align-items:flex-start;flex-direction:column}.composer-footer button{width:100%}.likert-inline{gap:.2rem}.likert-inline span{width:2rem;height:2rem}.message{max-width:92%}}

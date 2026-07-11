@@ -14,6 +14,9 @@ export const startParticipant = (study_id) =>
 export const saveConsent = (payload) =>
   axios.post(`${API}/participants/consent`, payload);
 
+export const saveAiLiteracy = (payload) =>
+  axios.post(`${API}/participants/ai-literacy`, payload);
+
 export const logEvent = (payload) =>
   axios.post(`${API}/participants/event`, payload);
 

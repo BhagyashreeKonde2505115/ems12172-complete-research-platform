@@ -5,7 +5,7 @@ export default function ThankYou() {
 
   const startNewParticipant = () => {
     localStorage.removeItem("studyId");
-    localStorage.removeItem("ems12172_session");
+    localStorage.removeItem("EMS12277_session");
     localStorage.removeItem("experimentState");
 
     window.location.reload();
@@ -47,7 +47,7 @@ export default function ThankYou() {
               <p className="small text-muted">
                 Researcher: Bhagyashree Yashwant Konde
                 <br />
-                Ethics Reference: EMS12172
+                Ethics Reference: EMS12277
                 <br />
                 Abertay University
               </p>

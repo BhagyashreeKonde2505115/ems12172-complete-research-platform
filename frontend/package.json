@@ -1,5 +1,5 @@
 {
-  "name": "ems12172-frontend",
+  "name": "EMS12277-frontend",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -14,6 +14,7 @@
     "vite": "^6.0.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^9.1.0",
     "uuid": "^11.0.5"
   },
   "devDependencies": {}

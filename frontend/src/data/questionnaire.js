@@ -28,4 +28,9 @@ export const questionnaireItems = [
   { key:"ux_2", scale:"ux", label:"The interaction felt natural.", points:7 },
   { key:"use_1", scale:"continued_use", label:"I would use this in my professional work.", points:7 },
   { key:"use_2", scale:"continued_use", label:"I would recommend this assistant to colleagues.", points:7 }
+,
+  { key:"supportive", scale:"manipulation", label:"How supportive was the assistant's communication style?", points:7, minLabel:"Not supportive", maxLabel:"Very supportive" },
+  { key:"professional", scale:"manipulation", label:"How professional was the assistant's communication style?", points:7, minLabel:"Not professional", maxLabel:"Very professional" },
+  { key:"clarity", scale:"response_quality", label:"The assistant presented its responses clearly and in a well-structured format.", points:7 },
+  { key:"follow_up", scale:"engagement", label:"The assistant's follow-up questions helped me continue and develop my task.", points:7 }
 ];

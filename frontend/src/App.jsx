@@ -6,6 +6,7 @@ import Interview from "./pages/Interview.jsx";
 import Debrief from "./pages/Debrief.jsx";
 import ThankYou from "./pages/ThankYou.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import AILiteracy from "./pages/AILiteracy.jsx";
 
 export default function App() {
   const { step } = useExperiment();
@@ -15,6 +16,7 @@ export default function App() {
   return (
     <div className="app-shell">
       {step === "pis" && <PISConsent />}
+      {step === "ai-literacy" && <AILiteracy />}
       {step === "chat" && <ChatTask />}
       {step === "questionnaire" && <Questionnaire />}
       {step === "interview" && <Interview />}
