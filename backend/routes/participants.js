@@ -41,6 +41,27 @@ router.post("/consent", async (req, res) => {
   }
 });
 
+router.post("/ai-literacy", async (req, res) => {
+  try {
+    const { study_id, aiLiteracy } = req.body;
+    if (!study_id) return res.status(400).json({ error: "study_id required" });
+    if (!aiLiteracy || !aiLiteracy.frequency || !aiLiteracy.duration || !aiLiteracy.baselineTrust) {
+      return res.status(400).json({ error: "Required AI literacy responses are missing" });
+    }
+    const participant = await Participant.findOneAndUpdate(
+      { study_id },
+      { aiLiteracy: { ...aiLiteracy, completedAt: new Date() }, status: "ai_literacy", updatedAt: new Date() },
+      { new: true }
+    );
+    if (!participant) return res.status(404).json({ error: "Participant not found" });
+    await EventLog.create({ study_id, eventType: "ai_literacy_completed", payload: { tools: aiLiteracy.tools || [], frequency: aiLiteracy.frequency } });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("AI literacy save failed:", err);
+    res.status(500).json({ error: "AI literacy save failed" });
+  }
+});
+
 router.post("/event", async (req, res) => {
   try {
     const { study_id, eventType, payload } = req.body;

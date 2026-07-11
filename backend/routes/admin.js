@@ -164,7 +164,47 @@ router.get("/participants", checkAdmin, async (req, res) => {
         status: p.status,
         ageBand: safe(p.demographics?.ageBand),
         gender: safe(p.demographics?.gender),
-        aiExperience: safe(p.demographics?.aiExperience),
+        employmentStatus:
+  safe(
+    p.demographics
+      ?.status
+  ),
+
+aiUsedBefore:
+  safe(
+    p.aiLiteracy
+      ?.usedBefore
+  ),
+
+aiTools:
+  (
+    p.aiLiteracy
+      ?.tools || []
+  ).join("; "),
+
+mostUsedAI:
+  safe(
+    p.aiLiteracy
+      ?.mostUsed
+  ),
+
+aiFrequency:
+  safe(
+    p.aiLiteracy
+      ?.frequency
+  ),
+
+aiDuration:
+  safe(
+    p.aiLiteracy
+      ?.duration
+  ),
+
+baselineAITrust:
+  safe(
+    p.aiLiteracy
+      ?.baselineTrust
+  ),
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
       }))
@@ -202,7 +242,47 @@ router.get("/export-csv", checkAdmin, async (req, res) => {
         status: p.status,
         ageBand: safe(p.demographics?.ageBand),
         gender: safe(p.demographics?.gender),
-        aiExperience: safe(p.demographics?.aiExperience),
+        employmentStatus:
+  safe(
+    p.demographics
+      ?.status
+  ),
+
+aiUsedBefore:
+  safe(
+    p.aiLiteracy
+      ?.usedBefore
+  ),
+
+aiTools:
+  (
+    p.aiLiteracy
+      ?.tools || []
+  ).join("; "),
+
+mostUsedAI:
+  safe(
+    p.aiLiteracy
+      ?.mostUsed
+  ),
+
+aiFrequency:
+  safe(
+    p.aiLiteracy
+      ?.frequency
+  ),
+
+aiDuration:
+  safe(
+    p.aiLiteracy
+      ?.duration
+  ),
+
+baselineAITrust:
+  safe(
+    p.aiLiteracy
+      ?.baselineTrust
+  ),
         createdAt: safe(p.createdAt),
         updatedAt: safe(p.updatedAt),
 
@@ -232,7 +312,7 @@ router.get("/export-csv", checkAdmin, async (req, res) => {
     res.setHeader("Content-Type", "text/csv; charset=utf-8");
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="EMS12172_participants.csv"`
+      `attachment; filename="EMS12277_participants.csv"`
     );
 
     res.send("\uFEFF" + csv);
@@ -270,7 +350,47 @@ router.get("/export-excel", checkAdmin, async (req, res) => {
         status: p.status,
         ageBand: safe(p.demographics?.ageBand),
         gender: safe(p.demographics?.gender),
-        aiExperience: safe(p.demographics?.aiExperience),
+        employmentStatus:
+  safe(
+    p.demographics
+      ?.status
+  ),
+
+aiUsedBefore:
+  safe(
+    p.aiLiteracy
+      ?.usedBefore
+  ),
+
+aiTools:
+  (
+    p.aiLiteracy
+      ?.tools || []
+  ).join("; "),
+
+mostUsedAI:
+  safe(
+    p.aiLiteracy
+      ?.mostUsed
+  ),
+
+aiFrequency:
+  safe(
+    p.aiLiteracy
+      ?.frequency
+  ),
+
+aiDuration:
+  safe(
+    p.aiLiteracy
+      ?.duration
+  ),
+
+baselineAITrust:
+  safe(
+    p.aiLiteracy
+      ?.baselineTrust
+  ),
         createdAt: safe(p.createdAt),
         updatedAt: safe(p.updatedAt),
 
@@ -328,7 +448,7 @@ router.get("/export-excel", checkAdmin, async (req, res) => {
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename="EMS12172_full_export.xlsx"`
+      `attachment; filename="EMS12277_full_export.xlsx"`
     );
 
     res.setHeader(

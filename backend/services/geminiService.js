@@ -1,125 +1,43 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { getSystemPrompt } = require("./promptService");
 
-if (!process.env.GEMINI_API_KEY) {
-  console.warn("⚠️ GEMINI_API_KEY is missing in backend/.env");
-}
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-const PROMPTS = {
-  WC: `
-You are a warm, supportive, collaborative AI assistant.
-
-Your role:
-Help the participant with any workplace idea-generation, planning, presentation preparation, problem-solving, decision-making, study task, or creative professional task of their choice.
-
-Communication rules:
-- Always answer the participant's actual latest question.
-- Use encouraging, friendly, and supportive language.
-- Use collaborative language such as "let's", "we can", and "we could".
-- Help the participant generate ideas, structure content, refine plans, and improve clarity.
-- Never force workshop planning unless the participant specifically asks for workshop planning.
-- Do not repeat generic responses.
-
-File and PPT rule:
-If the participant asks to create a PPT, PPTX, document, file, or attachment, do not claim to generate or attach an actual file. Instead, provide clear slide-by-slide content, structure, headings, bullet points, and speaker notes that the participant can copy into PowerPoint.
-`,
-
-  NI: `
-You are a neutral, professional, task-focused AI assistant.
-
-Your role:
-Help the participant with any workplace idea-generation, planning, presentation preparation, problem-solving, decision-making, study task, or creative professional task of their choice.
-
-Communication rules:
-- Always answer the participant's actual latest question.
-- Use clear, concise, structured, professional language.
-- Do not use praise, emotional encouragement, or friendly social language.
-- Do not use collaborative "we" or "let's" language.
-- Help the participant generate ideas, structure content, refine plans, and improve clarity.
-- Never force workshop planning unless the participant specifically asks for workshop planning.
-- Do not repeat generic responses.
-
-File and PPT rule:
-If the participant asks to create a PPT, PPTX, document, file, or attachment, do not claim to generate or attach an actual file. Instead, provide clear slide-by-slide content, structure, headings, bullet points, and speaker notes that the participant can copy into PowerPoint.
-`,
-};
-
-const MODEL_FALLBACKS = [
-  "gemini-2.0-flash",
-  "gemini-2.5-flash",
-  "gemini-1.5-flash-latest",
-];
+if (!process.env.GEMINI_API_KEY) console.warn("⚠️ GEMINI_API_KEY is missing in backend/.env");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "missing");
+const MODEL_FALLBACKS = ["gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-flash-latest"];
 
 function formatHistory(history = []) {
-  return history
-    .slice(-8)
-    .map((m) => {
-      const role = m.role === "assistant" || m.role === "ai" ? "assistant" : "user";
-      const text = m.text || m.content || "";
-      return `${role}: ${text}`;
-    })
-    .join("\n");
+  return history.slice(-10).map(m => {
+    const role = m.role === "assistant" || m.role === "ai" ? "assistant" : "user";
+    return `${role}: ${m.text || m.content || ""}`;
+  }).filter(Boolean).join("\n\n");
 }
 
-function developmentFallback(condition, message) {
-  if (condition === "WC") {
-    return `Absolutely — let's work with your request: "${message}". We can turn this into a clear structure with goals, key points, examples, and delivery notes. To begin, I suggest breaking it into: 1) purpose, 2) audience, 3) main content, 4) examples or activities, and 5) final takeaway.`;
-  }
-
-  return `Request received: "${message}". Suggested structure: 1) define the objective, 2) identify the audience, 3) list key points, 4) organize the content into sections, and 5) prepare delivery notes or next actions.`;
+function developmentFallback(condition, message, stage) {
+  const warm = condition === "WC";
+  return `## ${warm ? "Let’s shape this" : "Task response"}\n\n${warm ? "Thanks for sharing your direction. We can turn it into a clearer and more useful outcome." : "The request has been received. The next action is to clarify the intended outcome."}\n\n**Current focus**\n\n- ${String(message).slice(0,240)}\n- Stage ${stage} of 4\n- Define the audience, constraints, format, and success criteria\n\n**Suggested approach**\n\n- Clarify the result you need.\n- Develop two or three viable options.\n- Select and refine the strongest option.\n- Consolidate it into a usable final output.\n\n**Next step**\n\nWhat specific outcome would make this task successful for you?`;
 }
 
 async function callGeminiWithFallbacks(prompt) {
-  let lastError = null;
-
+  let lastError;
   for (const modelName of MODEL_FALLBACKS) {
     try {
-      console.log(`Trying Gemini model: ${modelName}`);
-
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-      });
-
+      const model = genAI.getGenerativeModel({ model: modelName });
       const result = await model.generateContent(prompt);
-      return result.response.text();
-    } catch (err) {
-      lastError = err;
-      console.error(`Gemini model failed: ${modelName}`);
-      console.error("Status:", err.status);
-      console.error("Message:", err.message);
-    }
+      const text = result.response.text()?.trim();
+      if (text) return text;
+    } catch (err) { lastError = err; console.error(`Gemini model failed: ${modelName}`, err.message); }
   }
-
-  throw lastError;
+  throw lastError || new Error("No Gemini response");
 }
 
-async function generateAIReply(condition, history = [], message) {
+async function generateAIReply(condition, history = [], message, stage = 1) {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("Missing GEMINI_API_KEY");
-    }
-
-    const systemPrompt = PROMPTS[condition] || PROMPTS.NI;
-    const conversationHistory = formatHistory(history);
-
-    const prompt = `
-${systemPrompt}
-
-Conversation history:
-${conversationHistory || "No previous conversation."}
-
-Participant latest message:
-${message}
-
-Respond to the participant's latest message directly.
-`;
-
+    if (!process.env.GEMINI_API_KEY) throw new Error("Missing GEMINI_API_KEY");
+    const prompt = `${getSystemPrompt(condition, stage)}\n\nConversation history:\n${formatHistory(history) || "No previous conversation."}\n\nParticipant latest message:\n${message}\n\nRespond to the latest message directly.`;
     return await callGeminiWithFallbacks(prompt);
   } catch (err) {
     console.error("Gemini final error:", err.message);
-
-    return developmentFallback(condition, message);
+    return developmentFallback(condition, message, stage);
   }
 }
 

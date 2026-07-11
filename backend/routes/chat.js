@@ -16,7 +16,7 @@ function getTextMetrics(text) {
 
 router.post("/message", async (req, res) => {
   try {
-    const { study_id, message, history } = req.body;
+    const { study_id, message, history, stage = 1 } = req.body;
 
     if (!study_id || !message) {
       return res.status(400).json({
@@ -49,7 +49,8 @@ router.post("/message", async (req, res) => {
     const reply = await generateAIReply(
       participant.condition,
       history || [],
-      message
+      message,
+      Math.max(1, Math.min(4, Number(stage) || 1))
     );
 
     const latency = Date.now() - start;
@@ -82,6 +83,7 @@ router.post("/message", async (req, res) => {
         userWordCount: getTextMetrics(message).wordCount,
         assistantCharCount: reply.length,
         assistantWordCount: getTextMetrics(reply).wordCount,
+        stage: Math.max(1, Math.min(4, Number(stage) || 1)),
       },
     });
 
