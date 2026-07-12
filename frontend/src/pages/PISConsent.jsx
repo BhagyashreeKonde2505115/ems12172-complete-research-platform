@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useExperiment } from "../context/ExperimentContext.jsx";
 import { consentStatements, pisText } from "../data/content.js";
 import { startParticipant, saveConsent } from "../utils/api.js";
-import { downloadPISPDF, downloadConsentPDF } from "../utils/pdfDownloads.js";
 
 export default function PISConsent() {
   const { studyId, setCondition, setStep, demographics, setDemographics } = useExperiment();
