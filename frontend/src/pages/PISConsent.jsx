@@ -2,10 +2,7 @@ import { useState } from "react";
 import { useExperiment } from "../context/ExperimentContext.jsx";
 import { consentStatements, pisText } from "../data/content.js";
 import { startParticipant, saveConsent } from "../utils/api.js";
-import {
-  downloadPISPDF,
-  downloadConsentPDF,
-} from "../utils/pdfDownloads.js";
+
 
 export default function PISConsent() {
   const {
@@ -80,19 +77,7 @@ export default function PISConsent() {
         demographics,
       });
 
-      try {
-        downloadPISPDF();
-
-        downloadConsentPDF({
-          studyId: newStudyId,
-          demographics,
-        });
-      } catch (pdfError) {
-        console.error(
-          "PDF download failed:",
-          pdfError
-        );
-      }
+      
 
       setStep("ai-literacy");
     } catch (err) {
