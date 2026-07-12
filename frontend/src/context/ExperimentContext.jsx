@@ -1,16 +1,62 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
+import {
+  createContext,
+  useContext,
+  useState,
+} from "react";
 
-const ExperimentContext = createContext(null);
-const STORAGE_KEY = "EMS12277_study_id";
-const STEP_KEY = "EMS12277_study_step";
+const ExperimentContext =
+  createContext(null);
 
-export function ExperimentProvider({ children }) {
-  const [step, setStepState] = useState(() => localStorage.getItem(STEP_KEY) || "pis");
-  const [studyId, setStudyId] = useState("");
-  const [condition, setCondition] = useState("");
-  const [demographics, setDemographics] = useState({ ageBand: "", gender: "", status: "" });
-  const [aiLiteracy, setAiLiteracy] = useState({
+const STEP_KEY =
+  "EMS12277_study_step";
+
+const STUDY_ID_KEY =
+  "EMS12277_study_id";
+
+const CONDITION_KEY =
+  "EMS12277_condition";
+
+export function ExperimentProvider({
+  children,
+}) {
+  const [step, setStepState] =
+    useState(
+      () =>
+        localStorage.getItem(STEP_KEY) ||
+        "pis"
+    );
+
+  const [studyId, setStudyIdState] =
+    useState(
+      () =>
+        localStorage.getItem(
+          STUDY_ID_KEY
+        ) || ""
+    );
+
+  const [
+    condition,
+    setConditionState,
+  ] = useState(
+    () =>
+      localStorage.getItem(
+        CONDITION_KEY
+      ) || ""
+  );
+
+  const [
+    demographics,
+    setDemographics,
+  ] = useState({
+    ageBand: "",
+    gender: "",
+    status: "",
+  });
+
+  const [
+    aiLiteracy,
+    setAiLiteracy,
+  ] = useState({
     usedBefore: "",
     tools: [],
     otherTool: "",
@@ -21,43 +67,138 @@ export function ExperimentProvider({ children }) {
     items: {},
     baselineTrust: "",
   });
-  const [taskStage, setTaskStage] = useState(1);
 
-  useEffect(() => {
-    let id = localStorage.getItem(STORAGE_KEY);
-    if (!id) {
-      id = uuidv4();
-      localStorage.setItem(STORAGE_KEY, id);
-    }
-    setStudyId(id);
-  }, []);
-
-  const setStep = (next) => {
-    localStorage.setItem(STEP_KEY, next);
-    setStepState(next);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const value = useMemo(() => ({
-    step,
-    setStep,
-    studyId,
-    setStudyId,
-    condition,
-    setCondition,
-    demographics,
-    setDemographics,
-    aiLiteracy,
-    setAiLiteracy,
+  const [
     taskStage,
     setTaskStage,
-  }), [step, studyId, condition, demographics, aiLiteracy, taskStage]);
+  ] = useState(1);
 
-  return <ExperimentContext.Provider value={value}>{children}</ExperimentContext.Provider>;
+  function setStep(nextStep) {
+    localStorage.setItem(
+      STEP_KEY,
+      nextStep
+    );
+
+    setStepState(nextStep);
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
+
+  function setStudyId(value) {
+    if (value) {
+      localStorage.setItem(
+        STUDY_ID_KEY,
+        value
+      );
+    } else {
+      localStorage.removeItem(
+        STUDY_ID_KEY
+      );
+    }
+
+    setStudyIdState(value);
+  }
+
+  function setCondition(value) {
+    if (value) {
+      localStorage.setItem(
+        CONDITION_KEY,
+        value
+      );
+    } else {
+      localStorage.removeItem(
+        CONDITION_KEY
+      );
+    }
+
+    setConditionState(value);
+  }
+
+  function resetExperiment() {
+    localStorage.removeItem(STEP_KEY);
+    localStorage.removeItem(
+      STUDY_ID_KEY
+    );
+    localStorage.removeItem(
+      CONDITION_KEY
+    );
+
+    localStorage.removeItem(
+      "experiment_state"
+    );
+
+    sessionStorage.removeItem(
+      "current_participant"
+    );
+
+    setStudyIdState("");
+    setConditionState("");
+    setStepState("pis");
+
+    setDemographics({
+      ageBand: "",
+      gender: "",
+      status: "",
+    });
+
+    setAiLiteracy({
+      usedBefore: "",
+      tools: [],
+      otherTool: "",
+      mostUsed: "",
+      frequency: "",
+      duration: "",
+      primaryUses: [],
+      items: {},
+      baselineTrust: "",
+    });
+
+    setTaskStage(1);
+  }
+
+  return (
+    <ExperimentContext.Provider
+      value={{
+        step,
+        setStep,
+
+        studyId,
+        setStudyId,
+
+        condition,
+        setCondition,
+
+        demographics,
+        setDemographics,
+
+        aiLiteracy,
+        setAiLiteracy,
+
+        taskStage,
+        setTaskStage,
+
+        resetExperiment,
+      }}
+    >
+      {children}
+    </ExperimentContext.Provider>
+  );
 }
 
 export function useExperiment() {
-  const ctx = useContext(ExperimentContext);
-  if (!ctx) throw new Error("useExperiment must be used inside ExperimentProvider");
-  return ctx;
+  const context =
+    useContext(
+      ExperimentContext
+    );
+
+  if (!context) {
+    throw new Error(
+      "useExperiment must be used inside ExperimentProvider"
+    );
+  }
+
+  return context;
 }

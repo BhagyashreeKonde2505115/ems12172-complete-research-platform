@@ -1,67 +1,76 @@
 import { useExperiment } from "../context/ExperimentContext.jsx";
 
 export default function ThankYou() {
-  const { studyId } = useExperiment();
+  const {
+    studyId,
+    resetExperiment,
+  } = useExperiment();
 
-  const startNewParticipant = () => {
-    localStorage.removeItem("studyId");
-    localStorage.removeItem("EMS12277_session");
-    localStorage.removeItem("experimentState");
+  function handleStartNewParticipant() {
+    resetExperiment();
 
-    window.location.reload();
-  };
+    /*
+     * Force a clean reload after the
+     * React context and local storage
+     * have been reset.
+     */
+    window.location.replace("/");
+  }
 
   return (
-    <main className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-lg-7">
-          <div className="card research-card p-5 text-center shadow-sm">
-            <div className="mb-4">
-              <div
-                className="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center"
-                style={{ width: "80px", height: "80px", fontSize: "2rem" }}
-              >
-                ✓
-              </div>
-            </div>
-
-            <h1 className="fw-bold mb-3">Thank You for Participating</h1>
-
-            <p className="text-muted mb-4">
-              Your participation has been recorded successfully.
-            </p>
-
-            <h5 className="mb-2">Participant Study ID</h5>
-
-            <div className="alert alert-light border fw-bold fs-4">
-              {studyId}
-            </div>
-
-            <p className="small text-muted mb-4">
-              Please save this Study ID if you wish to withdraw your data
-              within two weeks of participation, as described in the
-              Participant Information Sheet.
-            </p>
-
-            <div className="border-top pt-4">
-              <p className="small text-muted">
-                Researcher: Bhagyashree Yashwant Konde
-                <br />
-                Ethics Reference: EMS12277
-                <br />
-                Abertay University
-              </p>
-            </div>
-
-            <button
-              className="btn btn-outline-primary mt-3"
-              onClick={startNewParticipant}
+    <div className="container py-5">
+      <div
+        className="card shadow-sm border-0 mx-auto"
+        style={{
+          maxWidth: "720px",
+        }}
+      >
+        <div className="card-body p-4 p-md-5 text-center">
+          <div className="mb-4">
+            <span
+              className="d-inline-flex align-items-center justify-content-center rounded-circle bg-success-subtle text-success"
+              style={{
+                width: "64px",
+                height: "64px",
+                fontSize: "30px",
+              }}
             >
-              Start New Participant Session
-            </button>
+              ✓
+            </span>
           </div>
+
+          <h1 className="h2 mb-3">
+            Thank you for taking part
+          </h1>
+
+          <p className="text-muted mb-4">
+            Your responses have been
+            recorded successfully.
+          </p>
+
+          {studyId && (
+            <div className="alert alert-light border mb-4">
+              <span className="d-block small text-muted">
+                Participant ID
+              </span>
+
+              <strong className="text-break">
+                {studyId}
+              </strong>
+            </div>
+          )}
+
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={
+              handleStartNewParticipant
+            }
+          >
+            Start New Participant Session
+          </button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

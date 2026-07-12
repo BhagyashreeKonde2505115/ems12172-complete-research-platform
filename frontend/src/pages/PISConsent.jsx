@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useExperiment } from "../context/ExperimentContext.jsx";
 import { consentStatements, pisText } from "../data/content.js";
 import { startParticipant, saveConsent } from "../utils/api.js";
+import { downloadPISPDF, downloadConsentPDF } from "../utils/pdfDownloads.js";
 
 export default function PISConsent() {
   const { studyId, setCondition, setStep, demographics, setDemographics } = useExperiment();
@@ -22,6 +23,13 @@ export default function PISConsent() {
       ]);
       setCondition(startResponse.data.condition);
       await saveConsent({ study_id: studyId, consentChecks: checks, demographics });
+      await saveConsent(payload);
+
+downloadPISPDF();
+downloadConsentPDF({
+  studyId,
+  demographics,
+});
       setStep("ai-literacy");
     } catch (err) {
       setError(err.response?.data?.error || err.message || "We could not create your study session. Please try again.");
