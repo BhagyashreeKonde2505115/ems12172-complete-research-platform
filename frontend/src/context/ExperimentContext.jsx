@@ -118,46 +118,45 @@ export function ExperimentProvider({
   }
 
   function resetExperiment() {
-    localStorage.removeItem(STEP_KEY);
-    localStorage.removeItem(
-      STUDY_ID_KEY
-    );
-    localStorage.removeItem(
-      CONDITION_KEY
-    );
+  localStorage.removeItem("ems12172_study_step");
+  localStorage.removeItem("ems12172_study_id");
+  localStorage.removeItem("ems12172_condition");
 
-    localStorage.removeItem(
-      "experiment_state"
-    );
+  localStorage.removeItem("ems12277_study_step");
+  localStorage.removeItem("ems12277_study_id");
+  localStorage.removeItem("ems12277_condition");
 
-    sessionStorage.removeItem(
-      "current_participant"
-    );
+  localStorage.removeItem("study_id");
+  localStorage.removeItem("studyId");
+  localStorage.removeItem("condition");
+  localStorage.removeItem("experiment_state");
 
-    setStudyIdState("");
-    setConditionState("");
-    setStepState("pis");
+  sessionStorage.clear();
 
-    setDemographics({
-      ageBand: "",
-      gender: "",
-      status: "",
-    });
+  setStudyIdState("");
+  setConditionState("");
+  setStepState("pis");
 
-    setAiLiteracy({
-      usedBefore: "",
-      tools: [],
-      otherTool: "",
-      mostUsed: "",
-      frequency: "",
-      duration: "",
-      primaryUses: [],
-      items: {},
-      baselineTrust: "",
-    });
+  setDemographics({
+    ageBand: "",
+    gender: "",
+    status: "",
+  });
 
-    setTaskStage(1);
-  }
+  setAiLiteracy({
+    usedBefore: "",
+    tools: [],
+    otherTool: "",
+    mostUsed: "",
+    frequency: "",
+    duration: "",
+    primaryUses: [],
+    items: {},
+    baselineTrust: "",
+  });
+
+  setTaskStage(1);
+}
 
   return (
     <ExperimentContext.Provider
