@@ -164,47 +164,7 @@ router.get("/participants", checkAdmin, async (req, res) => {
         status: p.status,
         ageBand: safe(p.demographics?.ageBand),
         gender: safe(p.demographics?.gender),
-        employmentStatus:
-  safe(
-    p.demographics
-      ?.status
-  ),
-
-aiUsedBefore:
-  safe(
-    p.aiLiteracy
-      ?.usedBefore
-  ),
-
-aiTools:
-  (
-    p.aiLiteracy
-      ?.tools || []
-  ).join("; "),
-
-mostUsedAI:
-  safe(
-    p.aiLiteracy
-      ?.mostUsed
-  ),
-
-aiFrequency:
-  safe(
-    p.aiLiteracy
-      ?.frequency
-  ),
-
-aiDuration:
-  safe(
-    p.aiLiteracy
-      ?.duration
-  ),
-
-baselineAITrust:
-  safe(
-    p.aiLiteracy
-      ?.baselineTrust
-  ),
+        aiExperience: safe(p.demographics?.aiExperience),
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
       }))
@@ -242,47 +202,7 @@ router.get("/export-csv", checkAdmin, async (req, res) => {
         status: p.status,
         ageBand: safe(p.demographics?.ageBand),
         gender: safe(p.demographics?.gender),
-        employmentStatus:
-  safe(
-    p.demographics
-      ?.status
-  ),
-
-aiUsedBefore:
-  safe(
-    p.aiLiteracy
-      ?.usedBefore
-  ),
-
-aiTools:
-  (
-    p.aiLiteracy
-      ?.tools || []
-  ).join("; "),
-
-mostUsedAI:
-  safe(
-    p.aiLiteracy
-      ?.mostUsed
-  ),
-
-aiFrequency:
-  safe(
-    p.aiLiteracy
-      ?.frequency
-  ),
-
-aiDuration:
-  safe(
-    p.aiLiteracy
-      ?.duration
-  ),
-
-baselineAITrust:
-  safe(
-    p.aiLiteracy
-      ?.baselineTrust
-  ),
+        aiExperience: safe(p.demographics?.aiExperience),
         createdAt: safe(p.createdAt),
         updatedAt: safe(p.updatedAt),
 
@@ -350,47 +270,7 @@ router.get("/export-excel", checkAdmin, async (req, res) => {
         status: p.status,
         ageBand: safe(p.demographics?.ageBand),
         gender: safe(p.demographics?.gender),
-        employmentStatus:
-  safe(
-    p.demographics
-      ?.status
-  ),
-
-aiUsedBefore:
-  safe(
-    p.aiLiteracy
-      ?.usedBefore
-  ),
-
-aiTools:
-  (
-    p.aiLiteracy
-      ?.tools || []
-  ).join("; "),
-
-mostUsedAI:
-  safe(
-    p.aiLiteracy
-      ?.mostUsed
-  ),
-
-aiFrequency:
-  safe(
-    p.aiLiteracy
-      ?.frequency
-  ),
-
-aiDuration:
-  safe(
-    p.aiLiteracy
-      ?.duration
-  ),
-
-baselineAITrust:
-  safe(
-    p.aiLiteracy
-      ?.baselineTrust
-  ),
+        aiExperience: safe(p.demographics?.aiExperience),
         createdAt: safe(p.createdAt),
         updatedAt: safe(p.updatedAt),
 
