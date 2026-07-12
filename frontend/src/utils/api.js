@@ -1,80 +1,169 @@
 import axios from "axios";
 
-const API =
-  import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5001/api";
 
-const ADMIN_KEY =
-  import.meta.env.VITE_ADMIN_API_KEY || "ChangeThisAdminKey";
+const api = axios.create({
+  baseURL: API_URL,
 
-/* ---------------- Participant ---------------- */
+  headers: {
+    "Content-Type":
+      "application/json",
+  },
 
-export const startParticipant = (study_id) =>
-  axios.post(`${API}/participants/start`, { study_id });
+  timeout: 20000,
+});
 
-export const saveConsent = (payload) =>
-  axios.post(`${API}/participants/consent`, payload);
-
-export const saveAiLiteracy = (payload) =>
-  axios.post(`${API}/participants/ai-literacy`, payload);
-
-export const logEvent = (payload) =>
-  axios.post(`${API}/participants/event`, payload);
-
-/* ---------------- Chat ---------------- */
-
-export const sendChatMessage = (payload) =>
-  axios.post(`${API}/chat/message`, payload);
-
-/* ---------------- Questionnaire ---------------- */
-
-export const autosaveQuestionnaire = (payload) =>
-  axios.post(`${API}/responses/questionnaire/autosave`, payload);
-
-export const submitQuestionnaire = (payload) =>
-  axios.post(`${API}/responses/questionnaire/submit`, payload);
-
-/* ---------------- Interview ---------------- */
-
-export const autosaveInterview = (payload) =>
-  axios.post(`${API}/responses/interview/autosave`, payload);
-
-export const submitInterview = (payload) =>
-  axios.post(`${API}/responses/interview/submit`, payload);
-
-/* ---------------- Dashboard ---------------- */
-
-export const getKpis = () =>
-  axios.get(`${API}/admin/kpis`, {
-    headers: {
-      "x-admin-key": ADMIN_KEY,
-    },
-  });
-
-export const getParticipants = () =>
-  axios.get(`${API}/admin/participants`, {
-    headers: {
-      "x-admin-key": ADMIN_KEY,
-    },
-  });
-
-/* ---------------- Export ---------------- */
-
-export const exportUrl = (format = "csv") => {
-  if (format === "xlsx") {
-    return `${API}/admin/export-excel?key=${ADMIN_KEY}`;
-  }
-
-  return `${API}/admin/export-csv?key=${ADMIN_KEY}`;
-};
-
-/* ---------------- GDPR Erasure ---------------- */
-
-export const eraseParticipant = (study_id) =>
-  axios.delete(
-    `${API}/admin/erase-participant/${study_id}`,
-    {
-      headers: {
-        "x-admin-key": ADMIN_KEY,
-      },
+/*
+ * Optional request logging during development.
+ */
+api.interceptors.request.use(
+  (config) => {
+    if (
+      import.meta.env.DEV
+    ) {
+      console.log(
+        "API request:",
+        config.method?.toUpperCase(),
+        `${config.baseURL}${config.url}`
+      );
     }
-  );
+
+    return config;
+  },
+
+  (error) =>
+    Promise.reject(error)
+);
+
+/*
+ * Optional response error logging.
+ */
+api.interceptors.response.use(
+  (response) => response,
+
+  (error) => {
+    if (
+      import.meta.env.DEV
+    ) {
+      console.error(
+        "API error:",
+        {
+          message:
+            error.message,
+
+          status:
+            error.response
+              ?.status,
+
+          data:
+            error.response
+              ?.data,
+
+          url:
+            error.config
+              ?.url,
+        }
+      );
+    }
+
+    return Promise.reject(
+      error
+    );
+  }
+);
+
+/*
+ * Participant creation.
+ *
+ * The backend generates:
+ * - study_id
+ * - WC or NI condition
+ */
+export const startParticipant = (studyId) =>
+  api.post("/participants/start", {
+    study_id: studyId,
+  });
+
+/*
+ * Save informed consent
+ * and demographics.
+ */
+export const saveConsent =
+  (payload) =>
+    api.post(
+      "/participants/consent",
+      payload
+    );
+
+/*
+ * Save pre-task AI literacy
+ * responses.
+ */
+export const saveAiLiteracy =
+  (payload) =>
+    api.post(
+      "/participants/ai-literacy",
+      payload
+    );
+
+/*
+ * Send a participant message
+ * to the AI assistant.
+ */
+export const sendChatMessage =
+  (payload) =>
+    api.post(
+      "/chat/message",
+      payload
+    );
+
+/*
+ * Save questionnaire responses.
+ */
+export const saveQuestionnaire =
+  (payload) =>
+    api.post(
+      "/responses/questionnaire",
+      payload
+    );
+
+/*
+ * Save interview responses.
+ */
+export const saveInterview =
+  (payload) =>
+    api.post(
+      "/responses/interview",
+      payload
+    );
+
+/*
+ * Record participant interaction
+ * events such as:
+ * - chat_started
+ * - task_stage_changed
+ * - chat_completed
+ */
+export const logEvent =
+  (payload) =>
+    api.post(
+      "/participants/event",
+      payload
+    );
+
+/*
+ * Delete participant data
+ * using Study ID.
+ *
+ * Update this path if your
+ * backend GDPR route is different.
+ */
+export const deleteParticipantData =
+  (studyId) =>
+    api.delete(
+      `/participants/${studyId}`
+    );
+
+export default api;

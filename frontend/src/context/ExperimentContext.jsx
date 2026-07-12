@@ -4,27 +4,38 @@ import {
   useState,
 } from "react";
 
-const ExperimentContext =
-  createContext(null);
+const ExperimentContext = createContext(null);
 
-const STEP_KEY =
-  "EMS12277_study_step";
+const STEP_KEY = "ems12277_study_step";
+const STUDY_ID_KEY = "ems12277_study_id";
+const CONDITION_KEY = "ems12277_condition";
 
-const STUDY_ID_KEY =
-  "EMS12277_study_id";
+const initialDemographics = {
+  ageBand: "",
+  gender: "",
+  status: "",
+};
 
-const CONDITION_KEY =
-  "EMS12277_condition";
+const initialAiLiteracy = {
+  usedBefore: "",
+  tools: [],
+  otherTool: "",
+  mostUsed: "",
+  frequency: "",
+  duration: "",
+  primaryUses: [],
+  items: {},
+  baselineTrust: "",
+};
 
 export function ExperimentProvider({
   children,
 }) {
-  const [step, setStepState] =
-    useState(
-      () =>
-        localStorage.getItem(STEP_KEY) ||
-        "pis"
-    );
+  const [step, setStepState] = useState(
+    () =>
+      localStorage.getItem(STEP_KEY) ||
+      "pis"
+  );
 
   const [studyId, setStudyIdState] =
     useState(
@@ -47,26 +58,12 @@ export function ExperimentProvider({
   const [
     demographics,
     setDemographics,
-  ] = useState({
-    ageBand: "",
-    gender: "",
-    status: "",
-  });
+  ] = useState(initialDemographics);
 
   const [
     aiLiteracy,
     setAiLiteracy,
-  ] = useState({
-    usedBefore: "",
-    tools: [],
-    otherTool: "",
-    mostUsed: "",
-    frequency: "",
-    duration: "",
-    primaryUses: [],
-    items: {},
-    baselineTrust: "",
-  });
+  ] = useState(initialAiLiteracy);
 
   const [
     taskStage,
@@ -118,45 +115,71 @@ export function ExperimentProvider({
   }
 
   function resetExperiment() {
-  localStorage.removeItem("ems12172_study_step");
-  localStorage.removeItem("ems12172_study_id");
-  localStorage.removeItem("ems12172_condition");
+    /*
+     * Remove current EMS12277 keys.
+     */
+    localStorage.removeItem(STEP_KEY);
+    localStorage.removeItem(
+      STUDY_ID_KEY
+    );
+    localStorage.removeItem(
+      CONDITION_KEY
+    );
 
-  localStorage.removeItem("ems12277_study_step");
-  localStorage.removeItem("ems12277_study_id");
-  localStorage.removeItem("ems12277_condition");
+    /*
+     * Remove previous EMS12172 keys,
+     * in case they still exist in the browser.
+     */
+    localStorage.removeItem(
+      "ems12172_study_step"
+    );
+    localStorage.removeItem(
+      "ems12172_study_id"
+    );
+    localStorage.removeItem(
+      "ems12172_condition"
+    );
 
-  localStorage.removeItem("study_id");
-  localStorage.removeItem("studyId");
-  localStorage.removeItem("condition");
-  localStorage.removeItem("experiment_state");
+    /*
+     * Remove possible older generic keys.
+     */
+    localStorage.removeItem(
+      "study_id"
+    );
+    localStorage.removeItem(
+      "studyId"
+    );
+    localStorage.removeItem(
+      "condition"
+    );
+    localStorage.removeItem(
+      "currentStep"
+    );
+    localStorage.removeItem(
+      "experiment_state"
+    );
 
-  sessionStorage.clear();
+    sessionStorage.removeItem(
+      "current_participant"
+    );
 
-  setStudyIdState("");
-  setConditionState("");
-  setStepState("pis");
+    setStudyIdState("");
+    setConditionState("");
+    setStepState("pis");
 
-  setDemographics({
-    ageBand: "",
-    gender: "",
-    status: "",
-  });
+    setDemographics({
+      ...initialDemographics,
+    });
 
-  setAiLiteracy({
-    usedBefore: "",
-    tools: [],
-    otherTool: "",
-    mostUsed: "",
-    frequency: "",
-    duration: "",
-    primaryUses: [],
-    items: {},
-    baselineTrust: "",
-  });
+    setAiLiteracy({
+      ...initialAiLiteracy,
+      tools: [],
+      primaryUses: [],
+      items: {},
+    });
 
-  setTaskStage(1);
-}
+    setTaskStage(1);
+  }
 
   return (
     <ExperimentContext.Provider
@@ -188,10 +211,9 @@ export function ExperimentProvider({
 }
 
 export function useExperiment() {
-  const context =
-    useContext(
-      ExperimentContext
-    );
+  const context = useContext(
+    ExperimentContext
+  );
 
   if (!context) {
     throw new Error(
