@@ -122,12 +122,11 @@ export const sendChatMessage =
 /*
  * Save questionnaire responses.
  */
-export const saveQuestionnaire =
-  (payload) =>
-    api.post(
-      "/responses/questionnaire",
-      payload
-    );
+export const saveQuestionnaire = (payload) =>
+  api.post("/responses/questionnaire", payload);
+
+export const autosaveQuestionnaire = (payload) =>
+  api.post("/responses/questionnaire/autosave", payload);
 
 /*
  * Save interview responses.
