@@ -127,7 +127,8 @@ export const saveQuestionnaire = (payload) =>
 
 export const autosaveQuestionnaire = (payload) =>
   api.post("/responses/questionnaire/autosave", payload);
-
+export const submitQuestionnaire = (payload) =>
+  api.post(    "/responses/questionnaire", payload);
 /*
  * Save interview responses.
  */
