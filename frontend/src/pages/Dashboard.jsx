@@ -84,7 +84,7 @@ export default function Dashboard() {
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
           <p className="text-primary fw-bold small text-uppercase mb-1">
-            EMS12277
+            EMS12172
           </p>
           <h1 className="fw-bold mb-1">Researcher Dashboard</h1>
           <p className="text-muted mb-0">Live study monitoring and export</p>

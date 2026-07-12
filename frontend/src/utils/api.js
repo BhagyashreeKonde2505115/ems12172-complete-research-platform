@@ -1,159 +1,80 @@
 import axios from "axios";
 
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5001/api";
+const API =
+  import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  timeout: 20000,
-});
+const ADMIN_KEY =
+  import.meta.env.VITE_ADMIN_API_KEY || "ChangeThisAdminKey";
 
-api.interceptors.request.use(
-  (config) => {
-    if (import.meta.env.DEV) {
-      console.log(
-        "API request:",
-        config.method?.toUpperCase(),
-        `${config.baseURL}${config.url}`
-      );
-    }
+/* ---------------- Participant ---------------- */
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (import.meta.env.DEV) {
-      console.error("API error:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-        url: error.config?.url,
-      });
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-/* Participant flow */
-
-export const startParticipant = () =>
-  api.post("/participants/start", {});
+export const startParticipant = (study_id) =>
+  axios.post(`${API}/participants/start`, { study_id });
 
 export const saveConsent = (payload) =>
-  api.post("/participants/consent", payload);
+  axios.post(`${API}/participants/consent`, payload);
 
 export const saveAiLiteracy = (payload) =>
-  api.post(
-    "/participants/ai-literacy",
-    payload
-  );
+  axios.post(`${API}/participants/ai-literacy`, payload);
 
 export const logEvent = (payload) =>
-  api.post("/participants/event", payload);
+  axios.post(`${API}/participants/event`, payload);
 
-/* Chat */
+/* ---------------- Chat ---------------- */
 
 export const sendChatMessage = (payload) =>
-  api.post("/chat/message", payload);
+  axios.post(`${API}/chat/message`, payload);
 
-/* Questionnaire */
+/* ---------------- Questionnaire ---------------- */
 
-export const autosaveQuestionnaire = (
-  payload
-) =>
-  api.post(
-    "/responses/questionnaire/autosave",
-    payload
-  );
+export const autosaveQuestionnaire = (payload) =>
+  axios.post(`${API}/responses/questionnaire/autosave`, payload);
 
-export const submitQuestionnaire = (
-  payload
-) =>
-  api.post(
-    "/responses/questionnaire",
-    payload
-  );
+export const submitQuestionnaire = (payload) =>
+  axios.post(`${API}/responses/questionnaire/submit`, payload);
 
-/* Interview */
+/* ---------------- Interview ---------------- */
 
-export const autosaveInterview = (
-  payload
-) =>
-  api.post(
-    "/responses/interview/autosave",
-    payload
-  );
+export const autosaveInterview = (payload) =>
+  axios.post(`${API}/responses/interview/autosave`, payload);
 
-export const submitInterview = (
-  payload
-) =>
-  api.post(
-    "/responses/interview",
-    payload
-  );
+export const submitInterview = (payload) =>
+  axios.post(`${API}/responses/interview/submit`, payload);
 
-/* Research dashboard */
+/* ---------------- Dashboard ---------------- */
 
-export const getKpis = (adminKey) =>
-  api.get("/admin/kpis", {
+export const getKpis = () =>
+  axios.get(`${API}/admin/kpis`, {
     headers: {
-      "x-admin-key": adminKey,
+      "x-admin-key": ADMIN_KEY,
     },
   });
 
-export const getParticipants = (
-  adminKey,
-  search = ""
-) =>
-  api.get("/admin/participants", {
-    params: {
-      search,
-    },
+export const getParticipants = () =>
+  axios.get(`${API}/admin/participants`, {
     headers: {
-      "x-admin-key": adminKey,
+      "x-admin-key": ADMIN_KEY,
     },
   });
 
-export const eraseParticipant = (
-  studyId,
-  adminKey
-) =>
-  api.delete(
-    `/admin/erase-participant/${encodeURIComponent(
-      studyId
-    )}`,
+/* ---------------- Export ---------------- */
+
+export const exportUrl = (format = "csv") => {
+  if (format === "xlsx") {
+    return `${API}/admin/export-excel?key=${ADMIN_KEY}`;
+  }
+
+  return `${API}/admin/export-csv?key=${ADMIN_KEY}`;
+};
+
+/* ---------------- GDPR Erasure ---------------- */
+
+export const eraseParticipant = (study_id) =>
+  axios.delete(
+    `${API}/admin/erase-participant/${study_id}`,
     {
       headers: {
-        "x-admin-key": adminKey,
+        "x-admin-key": ADMIN_KEY,
       },
     }
   );
-
-export const exportUrl = (
-  format,
-  adminKey
-) => {
-  const baseUrl =
-    API_URL.replace(/\/$/, "");
-
-  const route =
-    format === "xlsx" ||
-    format === "excel"
-      ? "/admin/export-excel"
-      : "/admin/export-csv";
-
-  return `${baseUrl}${route}?key=${encodeURIComponent(
-    adminKey || ""
-  )}`;
-};
-
-export default api;

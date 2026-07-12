@@ -3,357 +3,59 @@ import { useExperiment } from "../context/ExperimentContext.jsx";
 import { consentStatements, pisText } from "../data/content.js";
 import { startParticipant, saveConsent } from "../utils/api.js";
 
-
 export default function PISConsent() {
-  const {
-    studyId,
-    setStudyId,
-    setCondition,
-    setStep,
-    demographics,
-    setDemographics,
-  } = useExperiment();
-
-  const [checks, setChecks] = useState(
-    Array(consentStatements.length).fill(false)
-  );
-
+  const { studyId, setCondition, setStep, demographics, setDemographics } = useExperiment();
+  const [checks, setChecks] = useState(Array(consentStatements.length).fill(false));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const allChecked =
-    checks.every(Boolean) &&
-    Boolean(demographics.ageBand) &&
-    Boolean(demographics.gender) &&
-    Boolean(demographics.status);
+  const allChecked = checks.every(Boolean) && demographics.ageBand && demographics.gender && demographics.status;
 
-  async function continueStudy() {
-    if (!allChecked || loading) {
-      return;
-    }
-
+  const continueStudy = async () => {
+    if (!allChecked || loading) return;
     setLoading(true);
     setError("");
-
     try {
       const startResponse = await Promise.race([
-        startParticipant(),
-
-        new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(
-              new Error(
-                "The connection timed out. Please try again."
-              )
-            );
-          }, 15000);
-        }),
+        startParticipant(studyId),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("The connection timed out. Please try again.")), 15000)),
       ]);
-
-      const newStudyId =
-        startResponse?.data?.study_id;
-
-      const assignedCondition =
-        startResponse?.data?.condition;
-
-      if (!newStudyId) {
-        throw new Error(
-          "The server did not return a Study ID."
-        );
-      }
-
-      if (!assignedCondition) {
-        throw new Error(
-          "The server did not assign an AI condition."
-        );
-      }
-
-      setStudyId(newStudyId);
-      setCondition(assignedCondition);
-
-      await saveConsent({
-        study_id: newStudyId,
-        consentChecks: checks,
-        demographics,
-      });
-
-      
-
+      setCondition(startResponse.data.condition);
+      await saveConsent({ study_id: studyId, consentChecks: checks, demographics });
       setStep("ai-literacy");
     } catch (err) {
-      console.error(
-        "Participant session creation failed:",
-        err
-      );
-
-      setError(
-        err?.response?.data?.error ||
-          err?.response?.data?.details ||
-          err?.message ||
-          "We could not create your study session. Please try again."
-      );
+      setError(err.response?.data?.error || err.message || "We could not create your study session. Please try again.");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  function toggleConsent(index) {
-    setChecks((currentChecks) => {
-      const updatedChecks = [
-        ...currentChecks,
-      ];
-
-      updatedChecks[index] =
-        !updatedChecks[index];
-
-      return updatedChecks;
-    });
-  }
-
-  return (
-    <main className="container py-5">
-      <div className="row justify-content-center">
-        <div className="col-lg-9">
-          <div className="card research-card bg-white p-4 p-md-5 mb-4">
-            <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
-              <div>
-                <p className="text-uppercase text-primary fw-bold small mb-1">
-                  Abertay University Research
-                </p>
-
-                <h1 className="h3 fw-bold">
-                  Participant Information Sheet
-                </h1>
-              </div>
-
-              {studyId ? (
-                <span className="badge text-bg-light border text-break">
-                  Study ID: {studyId}
-                </span>
-              ) : (
-                <span className="badge text-bg-light border">
-                  Study ID generated after consent
-                </span>
-              )}
-            </div>
-
-            <pre
-              className="text-muted"
-              style={{
-                whiteSpace: "pre-wrap",
-                fontFamily: "inherit",
-              }}
-            >
-              {pisText}
-            </pre>
-          </div>
-
-          <div className="card research-card p-4 p-md-5">
-            <h2 className="h4 fw-bold mb-3">
-              Informed Consent Form
-            </h2>
-
-            {consentStatements.map(
-              (statement, index) => (
-                <label
-                  className={`choice-card d-flex gap-3 p-3 mb-2 border rounded-3 ${
-                    checks[index]
-                      ? "selected"
-                      : ""
-                  }`}
-                  key={statement}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checks[index]}
-                    onChange={() =>
-                      toggleConsent(index)
-                    }
-                  />
-
-                  <span className="small">
-                    {statement}
-                  </span>
-                </label>
-              )
-            )}
-
-            <hr />
-
-            <h3 className="h5 fw-bold">
-              Basic background information
-            </h3>
-
-            <div className="row g-3 mb-4">
-              <div className="col-md-4">
-                <label
-                  className="form-label"
-                  htmlFor="ageBand"
-                >
-                  Age band
-                </label>
-
-                <select
-                  id="ageBand"
-                  className="form-select"
-                  value={
-                    demographics.ageBand
-                  }
-                  onChange={(event) =>
-                    setDemographics({
-                      ...demographics,
-                      ageBand:
-                        event.target.value,
-                    })
-                  }
-                  required
-                >
-                  <option value="">
-                    Select
-                  </option>
-
-                  {[
-                    "18–24",
-                    "25–34",
-                    "35–44",
-                    "45–54",
-                    "55+",
-                  ].map((value) => (
-                    <option
-                      key={value}
-                      value={value}
-                    >
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <label
-                  className="form-label"
-                  htmlFor="gender"
-                >
-                  Gender
-                </label>
-
-                <select
-                  id="gender"
-                  className="form-select"
-                  value={
-                    demographics.gender
-                  }
-                  onChange={(event) =>
-                    setDemographics({
-                      ...demographics,
-                      gender:
-                        event.target.value,
-                    })
-                  }
-                  required
-                >
-                  <option value="">
-                    Select
-                  </option>
-
-                  {[
-                    "Female",
-                    "Male",
-                    "Non-binary",
-                    "Prefer not to say",
-                    "Self-describe",
-                  ].map((value) => (
-                    <option
-                      key={value}
-                      value={value}
-                    >
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <label
-                  className="form-label"
-                  htmlFor="currentStatus"
-                >
-                  Current status
-                </label>
-
-                <select
-                  id="currentStatus"
-                  className="form-select"
-                  value={
-                    demographics.status
-                  }
-                  onChange={(event) =>
-                    setDemographics({
-                      ...demographics,
-                      status:
-                        event.target.value,
-                    })
-                  }
-                  required
-                >
-                  <option value="">
-                    Select
-                  </option>
-
-                  {[
-                    "Student",
-                    "Employed",
-                    "Self-employed",
-                    "Not currently employed",
-                    "Other",
-                  ].map((value) => (
-                    <option
-                      key={value}
-                      value={value}
-                    >
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {error && (
-              <div
-                className="alert alert-danger"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="btn btn-indigo btn-lg"
-              disabled={
-                !allChecked || loading
-              }
-              onClick={continueStudy}
-            >
-              {loading
-                ? "Preparing your study session…"
-                : "I Agree and Wish to Proceed"}
-            </button>
-
-            {loading && (
-              <p
-                className="small text-muted mt-3 mb-0"
-                aria-live="polite"
-              >
-                Saving consent, generating your
-                Study ID, assigning the AI condition,
-                and preparing the next page. Please
-                do not close this window.
-              </p>
-            )}
-          </div>
+  return <main className="container py-5">
+    <div className="row justify-content-center"><div className="col-lg-9">
+      <div className="card research-card bg-white p-4 p-md-5 mb-4">
+        <div className="d-flex justify-content-between align-items-start mb-3">
+          <div><p className="text-uppercase text-primary fw-bold small mb-1">Abertay University Research</p><h1 className="h3 fw-bold">Participant Information Sheet</h1></div>
+          <span className="badge text-bg-light border">Study ID: {studyId?.slice(0,8)}</span>
         </div>
+        <pre className="text-muted" style={{whiteSpace:"pre-wrap", fontFamily:"inherit"}}>{pisText}</pre>
       </div>
-    </main>
-  );
+      <div className="card research-card p-4 p-md-5">
+        <h2 className="h4 fw-bold mb-3">Informed Consent Form</h2>
+        {consentStatements.map((txt,i)=><label className={`choice-card d-flex gap-3 p-3 mb-2 border rounded-3 ${checks[i]?"selected":""}`} key={txt}>
+          <input type="checkbox" checked={checks[i]} onChange={()=>{const c=[...checks]; c[i]=!c[i]; setChecks(c)}} />
+          <span className="small">{txt}</span>
+        </label>)}
+        <hr />
+        <h3 className="h5 fw-bold">Basic background information</h3>
+        <div className="row g-3 mb-4">
+          <div className="col-md-4"><label className="form-label">Age band</label><select className="form-select" value={demographics.ageBand} onChange={e=>setDemographics({...demographics, ageBand:e.target.value})}><option value="">Select</option>{["18–24","25–34","35–44","45–54","55+"].map(x=><option key={x}>{x}</option>)}</select></div>
+          <div className="col-md-4"><label className="form-label">Gender</label><select className="form-select" value={demographics.gender} onChange={e=>setDemographics({...demographics, gender:e.target.value})}><option value="">Select</option>{["Female","Male","Non-binary","Prefer not to say","Self-describe"].map(x=><option key={x}>{x}</option>)}</select></div>
+          <div className="col-md-4"><label className="form-label">Current status</label><select className="form-select" value={demographics.status} onChange={e=>setDemographics({...demographics, status:e.target.value})}><option value="">Select</option>{["Student","Employed","Self-employed","Not currently employed","Other"].map(x=><option key={x}>{x}</option>)}</select></div>
+        </div>
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
+        <button className="btn btn-indigo btn-lg" disabled={!allChecked || loading} onClick={continueStudy}>{loading?"Preparing your study session…":"I Agree and Wish to Proceed"}</button>
+        {loading && <p className="small text-muted mt-3 mb-0" aria-live="polite">Saving consent, assigning the study condition, and preparing the next page. Please do not close this window.</p>}
+      </div>
+    </div></div>
+  </main>;
 }

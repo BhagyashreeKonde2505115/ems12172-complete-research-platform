@@ -1,12 +1,12 @@
 import { useExperiment } from "./context/ExperimentContext.jsx";
 import PISConsent from "./pages/PISConsent.jsx";
+import AILiteracy from "./pages/AILiteracy.jsx";
 import ChatTask from "./pages/ChatTask.jsx";
 import Questionnaire from "./pages/Questionnaire.jsx";
 import Interview from "./pages/Interview.jsx";
 import Debrief from "./pages/Debrief.jsx";
 import ThankYou from "./pages/ThankYou.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import AILiteracy from "./pages/AILiteracy.jsx";
 
 export default function App() {
   const { step } = useExperiment();
