@@ -18,7 +18,9 @@ export default function ChatTask() {
   const [loading, setLoading] = useState(false);
   const [error,setError]=useState("");
   const bottomRef=useRef(null);
-  useEffect(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),[messages,loading]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading]);
 
   const send = async () => {
     if (!input.trim() || expired || loading) return;
@@ -47,7 +49,7 @@ export default function ChatTask() {
       <button className="btn btn-indigo mt-3" disabled={messages.filter(m=>m.role==="user").length===0} onClick={finish}>{expired?"Proceed to questionnaire":"Finish task and proceed"}</button>
     </div></div>
     <div className="col-xl-9"><div className="card research-card p-3 p-md-4 chat-card">
-      <div className="chat-header"><div><p className="text-primary text-uppercase fw-bold small mb-1">Stage {taskStage} of 4</p><h2 className="h4 fw-bold mb-0">Adaptive AI workspace</h2></div><span className="badge rounded-pill text-bg-light border">Same interface for both conditions</span></div>
+      <div className="chat-header"><div><p className="text-primary text-uppercase fw-bold small mb-1">Stage {taskStage} of 4</p><h2 className="h4 fw-bold mb-0">Adaptive AI workspace</h2></div></div>
       <div className="chat-window p-3 mb-3">{messages.map((m,i)=><MessageBubble key={i} message={m}/>)}{loading&&<div className="typing-indicator"><span></span><span></span><span></span><em>Preparing a structured response…</em></div>}<div ref={bottomRef}/></div>
       {error&&<div className="alert alert-danger py-2">{error}</div>}
       <div className="chat-composer"><textarea className="form-control" rows="3" disabled={expired||loading} value={input} maxLength={5000} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}} placeholder="Describe your task, answer the follow-up question, or ask for a refinement…"/><div className="composer-footer"><small className="text-muted">{input.length}/5000 · Enter to send · Shift+Enter for a new line</small><button className="btn btn-indigo" disabled={!input.trim()||expired||loading} onClick={send}>Send</button></div></div>

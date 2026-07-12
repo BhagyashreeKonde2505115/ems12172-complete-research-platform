@@ -9,7 +9,7 @@ export default function Debrief() {
         <div className="col-lg-9">
           <div className="card research-card p-4 p-md-5 shadow-sm">
             <p className="text-primary fw-bold small text-uppercase mb-2">
-              EMS12172 Debrief Sheet
+              EMS12277 Debrief Sheet
             </p>
 
             <h1 className="h3 fw-bold mb-3">DEBRIEF SHEET</h1>
@@ -20,7 +20,7 @@ export default function Debrief() {
                 Workplace Idea Generation
               </p>
               <p className="mb-1">
-                <strong>Ethics Reference:</strong> EMS12172
+                <strong>Ethics Reference:</strong> EMS12277
               </p>
               <p className="mb-0">
                 <strong>Thank you for taking part!</strong>

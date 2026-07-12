@@ -8,8 +8,8 @@ const ADMIN_KEY =
 
 /* ---------------- Participant ---------------- */
 
-export const startParticipant = (study_id) =>
-  axios.post(`${API}/participants/start`, { study_id });
+export const startParticipant = () =>
+  axios.post(`${API}/participants/start`, {});
 
 export const saveConsent = (payload) =>
   axios.post(`${API}/participants/consent`, payload);
