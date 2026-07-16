@@ -1,4 +1,5 @@
 import { useExperiment } from "./context/ExperimentContext.jsx";
+
 import PISConsent from "./pages/PISConsent.jsx";
 import AILiteracy from "./pages/AILiteracy.jsx";
 import ChatTask from "./pages/ChatTask.jsx";
@@ -10,8 +11,14 @@ import Dashboard from "./pages/Dashboard.jsx";
 
 export default function App() {
   const { step } = useExperiment();
-  const path = window.location.pathname;
-  if (path === "/dashboard") return <Dashboard />;
+
+  const path = window.location.pathname
+    .replace(/\/+$/, "")
+    .toLowerCase();
+
+  if (path === "/dashboard") {
+    return <Dashboard />;
+  }
 
   return (
     <div className="app-shell">
