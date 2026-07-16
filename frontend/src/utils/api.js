@@ -59,39 +59,68 @@ export const submitInterview = (payload) =>
 
 /* ---------------- Dashboard ---------------- */
 
+function requireAdminKey(adminKey) {
+  if (!adminKey) {
+    throw new Error("Admin key is required.");
+  }
+
+  return adminKey;
+}
+
 export const getKpis = (adminKey) =>
   api.get("/admin/kpis", {
     headers: {
-      "x-admin-key": adminKey,
+      "x-admin-key": requireAdminKey(adminKey),
     },
   });
 
-export const getParticipants = (adminKey) =>
+export const getParticipants = (
+  adminKey,
+  search = ""
+) =>
   api.get("/admin/participants", {
+    params: {
+      search,
+    },
     headers: {
-      "x-admin-key": adminKey,
+      "x-admin-key": requireAdminKey(adminKey),
     },
   });
 
 /* ---------------- Export ---------------- */
 
-export const exportUrl = (format = "csv", adminKey = "") => {
+export const exportUrl = (
+  format = "csv",
+  adminKey = ""
+) => {
+  const safeAdminKey =
+    requireAdminKey(adminKey);
+
   const route =
-    format === "xlsx"
+    format === "xlsx" ||
+    format === "excel"
       ? "/admin/export-excel"
       : "/admin/export-csv";
 
-  return `${API}${route}?key=${encodeURIComponent(adminKey)}`;
+  return `${API}${route}?key=${encodeURIComponent(
+    safeAdminKey
+  )}`;
 };
 
 /* ---------------- GDPR Erasure ---------------- */
 
-export const eraseParticipant = (studyId, adminKey) =>
+export const eraseParticipant = (
+  studyId,
+  adminKey
+) =>
   api.delete(
-    `/admin/erase-participant/${encodeURIComponent(studyId)}`,
+    `/admin/erase-participant/${encodeURIComponent(
+      studyId
+    )}`,
     {
       headers: {
-        "x-admin-key": adminKey,
+        "x-admin-key":
+          requireAdminKey(adminKey),
       },
     }
   );
