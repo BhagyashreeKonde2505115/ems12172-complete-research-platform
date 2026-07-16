@@ -1,7 +1,7 @@
-# EMS12172 Human–AI Interaction Experiment Platform
+# EMS12277 Human–AI Interaction Experiment Platform
 
 Study: **Does Chatbot Personality Shape Creative Confidence?**  
-Ethics Reference: **EMS12172**  
+Ethics Reference: **EMS12277**  
 Researcher: **Bhagyashree Yashwant Konde**
 
 This project is a full-stack experimental platform for a controlled human–AI interaction study.

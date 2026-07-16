@@ -12,7 +12,7 @@ npm run dev
 Edit `.env`:
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/study_ems12172
+MONGODB_URI=mongodb://localhost:27017/study_EMS12277
 PORT=5001
 ADMIN_API_KEY=ChangeThisAdminKey
 OPENAI_API_KEY=optional
