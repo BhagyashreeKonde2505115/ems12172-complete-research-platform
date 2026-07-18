@@ -1,79 +1,85 @@
-/* -------------------- CORS -------------------- */
+"use strict";
+
+require("dotenv").config();
+
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const rateLimit = require("express-rate-limit");
+
+const participantRoutes = require("./routes/participants");
+const chatRoutes = require("./routes/chat");
+const responseRoutes = require("./routes/responses");
+const adminRoutes = require("./routes/admin");
+
+const app = express();
+
+const PORT =
+  process.env.PORT || 5001;
+
+const MONGODB_URI =
+  process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error(
+    "MONGODB_URI is missing. Add it in Render Environment settings."
+  );
+
+  process.exit(1);
+}
+
+/* =========================================================
+   CORS
+========================================================= */
+
+function normalizeOrigin(origin) {
+  return String(origin || "")
+    .trim()
+    .replace(/\/+$/, "");
+}
 
 const configuredOrigins = String(
   process.env.CLIENT_ORIGIN || ""
 )
   .split(",")
-  .map((origin) =>
-    origin.trim().replace(/\/+$/, "")
-  )
+  .map(normalizeOrigin)
   .filter(Boolean);
 
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  ...configuredOrigins,
+  'https://ems12277ai-research-pl.netlify.app',
 ];
 
 function isAllowedOrigin(origin) {
   /*
-   * Server-to-server calls, health checks, PowerShell and
-   * Postman may not send an Origin header.
+   * Render health checks, PowerShell, Postman and
+   * server-to-server requests may not send Origin.
    */
   if (!origin) {
     return true;
   }
 
   const normalizedOrigin =
-    origin.replace(/\/+$/, "");
+    normalizeOrigin(origin);
 
-  if (
-    allowedOrigins.includes(
-      normalizedOrigin
-    )
-  ) {
-    return true;
-  }
-
-  /*
-   * Optional: allow deploy-preview URLs belonging only
-   * to your specific Netlify project.
-   *
-   * Replace the hostname below with your real Netlify
-   * production hostname.
-   */
-  try {
-    const parsedOrigin =
-      new URL(normalizedOrigin);
-
-    const trustedNetlifyHostname =
-      "ems12277-research-platform.netlify.app";
-
-    const isProductionNetlify =
-      parsedOrigin.protocol === "https:" &&
-      parsedOrigin.hostname ===
-        trustedNetlifyHostname;
-
-    const isNetlifyDeployPreview =
-      parsedOrigin.protocol === "https:" &&
-      parsedOrigin.hostname.endsWith(
-        `--${trustedNetlifyHostname}`
-      );
-
-    return (
-      isProductionNetlify ||
-      isNetlifyDeployPreview
-    );
-  } catch {
-    return false;
-  }
+  return allowedOrigins.includes(
+    normalizedOrigin
+  );
 }
 
 const corsOptions = {
   origin(origin, callback) {
-    if (
-      isAllowedOrigin(origin)
-    ) {
+    const allowed =
+      isAllowedOrigin(origin);
+
+    console.log("CORS request:", {
+      origin:
+        origin || "(no origin)",
+      allowed,
+    });
+
+    if (allowed) {
       return callback(
         null,
         true
@@ -85,14 +91,10 @@ const corsOptions = {
       origin
     );
 
-    /*
-     * Do not throw an Express error here.
-     * Returning false prevents CORS headers without turning
-     * the OPTIONS request into your custom HTTP 403 response.
-     */
     return callback(
-      null,
-      false
+      new Error(
+        `CORS blocked origin: ${origin}`
+      )
     );
   },
 
@@ -111,6 +113,10 @@ const corsOptions = {
     "x-admin-key",
   ],
 
+  exposedHeaders: [
+    "Content-Disposition",
+  ],
+
   credentials: false,
 
   optionsSuccessStatus: 204,
@@ -118,4 +124,244 @@ const corsOptions = {
   maxAge: 86400,
 };
 
+/*
+ * This must come before JSON parsing, rate limiting,
+ * and all API routes.
+ */
 app.use(cors(corsOptions));
+
+/* =========================================================
+   BODY PARSING
+========================================================= */
+
+app.use(
+  express.json({
+    limit: "5mb",
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: false,
+    limit: "5mb",
+  })
+);
+
+/* =========================================================
+   RATE LIMITING
+========================================================= */
+
+const apiLimiter =
+  rateLimit({
+    windowMs:
+      60 * 1000,
+
+    limit: 120,
+
+    standardHeaders: true,
+
+    legacyHeaders: false,
+
+    /*
+     * Do not rate-limit browser preflight requests.
+     */
+    skip(req) {
+      return req.method === "OPTIONS";
+    },
+
+    message: {
+      error:
+        "Too many requests. Please wait and try again.",
+    },
+  });
+
+app.use(
+  "/api",
+  apiLimiter
+);
+
+/* =========================================================
+   HEALTH ROUTES
+========================================================= */
+
+app.get("/", (_req, res) => {
+  return res.json({
+    ok: true,
+
+    study:
+      process.env
+        .ETHICS_REFERENCE ||
+      "EMS12277",
+
+    service:
+      "EMS12277 research backend",
+  });
+});
+
+app.get(
+  "/health",
+  (_req, res) => {
+    return res.json({
+      status: "ok",
+    });
+  }
+);
+
+app.get(
+  "/api/health",
+  (_req, res) => {
+    return res.json({
+      ok: true,
+
+      study:
+        process.env
+          .ETHICS_REFERENCE ||
+        "EMS12277",
+
+      service:
+        "EMS12277 research backend",
+    });
+  }
+);
+
+/*
+ * Temporary diagnostic route.
+ * You can remove this after CORS is confirmed working.
+ */
+app.get(
+  "/api/debug-origin",
+  (req, res) => {
+    const receivedOrigin =
+      req.headers.origin || null;
+
+    return res.json({
+      ok: true,
+
+      receivedOrigin,
+
+      allowed:
+        isAllowedOrigin(
+          receivedOrigin
+        ),
+
+      configuredOrigins,
+
+      allowedOrigins,
+    });
+  }
+);
+
+/* =========================================================
+   API ROUTES
+========================================================= */
+
+app.use(
+  "/api/participants",
+  participantRoutes
+);
+
+app.use(
+  "/api/chat",
+  chatRoutes
+);
+
+app.use(
+  "/api/responses",
+  responseRoutes
+);
+
+app.use(
+  "/api/admin",
+  adminRoutes
+);
+
+/* =========================================================
+   404 HANDLER
+========================================================= */
+
+app.use((req, res) => {
+  return res.status(404).json({
+    error: "Route not found",
+
+    method:
+      req.method,
+
+    path:
+      req.originalUrl,
+  });
+});
+
+/* =========================================================
+   ERROR HANDLER
+========================================================= */
+
+app.use(
+  (
+    error,
+    req,
+    res,
+    next
+  ) => {
+    console.error(
+      "Server error:",
+      error
+    );
+
+    if (
+      error.message?.startsWith(
+        "CORS blocked origin:"
+      )
+    ) {
+      return res.status(403).json({
+        error:
+          error.message,
+      });
+    }
+
+    return res.status(500).json({
+      error:
+        "Unexpected server error.",
+
+      details:
+        process.env.NODE_ENV ===
+        "development"
+          ? error.message
+          : undefined,
+    });
+  }
+);
+
+/* =========================================================
+   MONGODB + SERVER START
+========================================================= */
+
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log(
+      "MongoDB connected"
+    );
+
+    app.listen(
+      PORT,
+      "0.0.0.0",
+      () => {
+        console.log(
+          `Backend running on port ${PORT}`
+        );
+
+        console.log(
+          "Allowed CORS origins:",
+          allowedOrigins
+        );
+      }
+    );
+  })
+  .catch((error) => {
+    console.error(
+      "MongoDB connection failed:",
+      error.message
+    );
+
+    process.exit(1);
+  });
