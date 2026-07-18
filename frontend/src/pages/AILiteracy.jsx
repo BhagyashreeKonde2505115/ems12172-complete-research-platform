@@ -33,15 +33,15 @@ export default function AILiteracy() {
   const submit=async()=>{
     if(!complete||loading)return;
     setLoading(true);setError("");
-    try{await saveAiLiteracy({study_id:studyId,aiLiteracy});setStep("chat");}
+    try{await saveAiLiteracy({study_id:studyId,aiLiteracy});setStep("interview");}
     catch(err){setError(err.response?.data?.error||"AI literacy responses could not be saved. Please try again.");}
     finally{setLoading(false)}
   };
 
   return <main className="container py-5"><div className="row justify-content-center"><div className="col-lg-9"><div className="card research-card p-4 p-md-5">
-    <p className="text-primary fw-bold small text-uppercase">Pre-task section</p>
+    <p className="text-primary fw-bold small text-uppercase">Background AI experience</p>
     <h1 className="h3 fw-bold">Your experience with AI tools</h1>
-    <p className="text-muted">Please answer based on your experience before today's interaction. There are no right or wrong answers.</p>
+    <p className="text-muted">Please answer based on your general experience with AI tools. This section is placed after the task to avoid influencing your interaction. There are no right or wrong answers.</p>
 
     <label className="form-label fw-semibold mt-3">Have you used an AI assistant before?</label>
     <select className="form-select mb-4" value={aiLiteracy.usedBefore} onChange={e=>setAiLiteracy({...aiLiteracy,usedBefore:e.target.value})}><option value="">Select</option><option>Yes</option><option>No</option></select>
@@ -61,6 +61,6 @@ export default function AILiteracy() {
     <LikertRow label="Before today, how much did you generally trust AI assistants?" value={aiLiteracy.baselineTrust} onChange={v=>setAiLiteracy({...aiLiteracy,baselineTrust:v})} min="Not at all" max="Completely"/>
 
     {error&&<div className="alert alert-danger">{error}</div>}
-    <button className="btn btn-indigo btn-lg mt-3" disabled={!complete||loading} onClick={submit}>{loading?"Saving…":"Continue to AI task"}</button>
+    <button className="btn btn-indigo btn-lg mt-3" disabled={!complete||loading} onClick={submit}>{loading?"Saving…":"Continue"}</button>
   </div></div></div></main>;
 }

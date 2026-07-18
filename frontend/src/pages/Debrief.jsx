@@ -25,6 +25,11 @@ export default function Debrief() {
               <p className="mb-0">
                 <strong>Thank you for taking part!</strong>
               </p>
+              <p className="mb-0">
+                <strong>
+              Your contribution will help improve our understanding of how people collaborate with conversational AI systems during creative design activities.
+            </strong>
+            </p>
             </div>
 
             <p>
@@ -43,21 +48,28 @@ export default function Debrief() {
               for workplace idea generation and that was true. What we did not
               tell you initially is that there were actually two different
               versions of the AI assistant being used across the study. You used
-              one of these versions during your session:
+              The purpose of this study is to investigate how different conversational styles used by AI assistants influence people's experience during a creative design task. Participants complete the same design activity while interacting with one of several versions of an AI assistant. The versions differ slightly in their communication style so that researchers can examine how these differences influence user experience, trust, confidence, perceived safety, usability and creative thinking. To preserve the scientific validity of the research, specific details about the different versions are not disclosed until data collection has been completed.
+             During this study we collected:
             </p>
 
             <ul>
               <li>
-                Version A communicated in a friendly, warm, and encouraging
-                style it used collaborative and supportive language.
+               Demographic information
               </li>
               <li>
-                Version B communicated in a neutral, direct, and task-focused
-                style it used precise and professional language without social
-                elements.
+                Your conversation with the AI assistant
+              </li>
+              <li>
+               Questionnaire responses
+              </li>
+              <li>
+                Previous experience using AI systems
+              </li>
+              <li>
+                Interview responses
               </li>
             </ul>
-
+            <p>These data will be analysed anonymously for research purposes only.</p>
             <p>
               The reason we could not tell you which version you were using
               beforehand is that knowing this in advance could have changed how

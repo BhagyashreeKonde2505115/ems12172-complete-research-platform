@@ -30,7 +30,7 @@ export default function PISConsent() {
       setCondition(assignedCondition);
 
       await saveConsent({ study_id: newStudyId, consentChecks: checks, demographics });
-      setStep("ai-literacy");
+      setStep("chat");
     } catch (err) {
       console.error("Consent flow failed:", err);
       setError(err.response?.data?.error || err.response?.data?.details || err.message || "We could not create your study session. Please try again.");

@@ -16,8 +16,8 @@ export default function Questionnaire() {
   const next = async () => {
     if (!responses[item.key]) return;
     if (index < questionnaireItems.length - 1) setIndex(index+1);
-    else { await submitQuestionnaire({ study_id: studyId, responses }); setStep("interview"); }
+    else { await submitQuestionnaire({ study_id: studyId, responses }); setStep("ai-literacy"); }
   };
 
-  return <main className="container py-5"><div className="row justify-content-center"><div className="col-lg-8"><div className="card research-card p-4 p-md-5"><ProgressBar current={index+1} total={questionnaireItems.length}/><p className="text-primary fw-bold small text-uppercase">{item.scale}</p><h1 className="h4 fw-bold mb-4">{item.label}</h1>{item.reverse && <p className="small text-muted">Reverse-scored item.</p>}<LikertScale points={item.points} value={responses[item.key]} minLabel={item.minLabel} maxLabel={item.maxLabel} onChange={v=>setResponses({...responses,[item.key]:v})}/><div className="d-flex justify-content-between mt-5"><button className="btn btn-outline-secondary" disabled={index===0} onClick={()=>setIndex(index-1)}>Back</button><button className="btn btn-indigo" disabled={!responses[item.key]} onClick={next}>{index===questionnaireItems.length-1?"Submit Questionnaire":"Next"}</button></div></div></div></div></main>;
+  return <main className="container py-5"><div className="row justify-content-center"><div className="col-lg-8"><div className="card research-card p-4 p-md-5"><ProgressBar current={index+1} total={questionnaireItems.length}/><h1 className="h4 fw-bold mb-4">{item.label}</h1><LikertScale points={item.points} value={responses[item.key]} minLabel={item.minLabel} maxLabel={item.maxLabel} onChange={v=>setResponses({...responses,[item.key]:v})}/><div className="d-flex justify-content-between mt-5"><button className="btn btn-outline-secondary" disabled={index===0} onClick={()=>setIndex(index-1)}>Back</button><button className="btn btn-indigo" disabled={!responses[item.key]} onClick={next}>{index===questionnaireItems.length-1?"Submit Questionnaire":"Next"}</button></div></div></div></div></main>;
 }
