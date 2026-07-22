@@ -15,12 +15,14 @@ import {
 import MessageBubble from "../components/MessageBubble.jsx";
 
 /*
- * Final study setting: 120 seconds per stage.
+ * Final study setting: 180 seconds per stage.
  *
  * During development, temporarily change this to 15 or 20
- * so you do not need to wait eight minutes.
+ * so you do not need to wait twelve minutes.
  */
-const STAGE_DURATION_SECONDS = 120;
+const STAGE_DURATION_SECONDS = 180;
+const STAGE_TRANSITION_SECONDS = 10;
+const TOTAL_TASK_MINUTES = Math.ceil((STAGE_DURATION_SECONDS * 4) / 60);
 
 const STAGES = [
   {
@@ -175,7 +177,7 @@ function getConditionGreeting(condition) {
       "3. Refine",
       "4. Consolidate",
       "",
-      "Each stage lasts approximately two minutes and changes automatically.",
+      "Each stage lasts approximately three minutes and changes automatically.",
       "",
       "Select **Start Guided Task** when you are ready.",
     ].join("\n");
@@ -195,7 +197,7 @@ function getConditionGreeting(condition) {
     "3. Refine",
     "4. Consolidate",
     "",
-    "Each stage lasts approximately two minutes.",
+    "Each stage lasts approximately three minutes.",
     "",
     "Select **Start Guided Task** to begin.",
   ].join("\n");
@@ -264,6 +266,11 @@ export default function ChatTask() {
     transitioning,
     setTransitioning,
   ] = useState(false);
+
+  const [
+    transitionSecondsRemaining,
+    setTransitionSecondsRemaining,
+  ] = useState(STAGE_TRANSITION_SECONDS);
 
   const [error, setError] =
     useState("");
@@ -350,6 +357,7 @@ export default function ChatTask() {
     setTaskComplete(false);
     setLoading(false);
     setTransitioning(false);
+    setTransitionSecondsRemaining(STAGE_TRANSITION_SECONDS);
     setError("");
 
     stageEndTimeRef.current =
@@ -436,6 +444,31 @@ export default function ChatTask() {
   ]);
 
   /*
+   * Ten-second preparation countdown between stages.
+   * Participants may continue reading and typing; only sending is paused.
+   */
+  useEffect(() => {
+    if (!transitioning || taskComplete) {
+      return undefined;
+    }
+
+    setTransitionSecondsRemaining(STAGE_TRANSITION_SECONDS);
+
+    const transitionIntervalId = window.setInterval(() => {
+      setTransitionSecondsRemaining((current) => {
+        if (current <= 1) {
+          window.clearInterval(transitionIntervalId);
+          return 0;
+        }
+
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(transitionIntervalId);
+  }, [transitioning, taskComplete]);
+
+  /*
    * Automatically progress to the next stage.
    */
   useEffect(() => {
@@ -478,13 +511,13 @@ export default function ChatTask() {
                 "task-complete",
 
               text: [
-                "## Guided task complete",
+                "## Guided AI activity complete",
                 "",
-                "You have completed all four stages.",
+                "Thank you. You have completed all four stages.",
                 "",
                 participantMessageCount >
                 0
-                  ? "Please review the final outcome from the conversation and continue to the questionnaire when you are ready."
+                  ? "Please continue to the questionnaire while your experience is still fresh in your mind."
                   : "No participant message was entered during the activity. You may restart the task or end your participation.",
               ].join("\n"),
 
@@ -604,7 +637,7 @@ export default function ChatTask() {
 
           transitionLockRef.current =
             false;
-        }, 2000);
+        }, STAGE_TRANSITION_SECONDS * 1000);
     }
 
     advanceStage();
@@ -646,6 +679,7 @@ export default function ChatTask() {
     setTaskComplete(false);
     setLoading(false);
     setTransitioning(false);
+    setTransitionSecondsRemaining(STAGE_TRANSITION_SECONDS);
     setError("");
     setInput("");
 
@@ -731,6 +765,7 @@ export default function ChatTask() {
     setTaskComplete(false);
     setLoading(false);
     setTransitioning(false);
+    setTransitionSecondsRemaining(STAGE_TRANSITION_SECONDS);
 
     setInput("");
     setError("");
@@ -796,7 +831,6 @@ export default function ChatTask() {
     if (
       !cleanInput ||
       loading ||
-      transitioning ||
       taskComplete ||
       !taskStarted
     ) {
@@ -1012,6 +1046,16 @@ export default function ChatTask() {
       <div className="row g-4">
         <aside className="col-xl-3">
           <div className="card research-card p-4 task-sidebar sticky-xl-top">
+            <div className="study-id-box">
+              <small>
+                Your Study ID
+              </small>
+
+              <strong>
+                {studyId ||
+                  "Not available"}
+              </strong>
+            </div>
             <p className="text-primary text-uppercase fw-bold small mb-1">
               Guided AI activity
             </p>
@@ -1085,7 +1129,7 @@ export default function ChatTask() {
               )}
             </div>
 
-            <div className="border rounded-3 p-3 mb-3">
+            {/* <div className="border rounded-3 p-3 mb-3">
               <small className="text-muted d-block">
                 Current stage
               </small>
@@ -1105,57 +1149,17 @@ export default function ChatTask() {
                     ? currentStage.summary
                     : "Select Start Guided Task when ready."}
               </small>
-            </div>
+            </div> */}
 
-            <div className="border rounded-3 p-3 mb-3">
-              <small className="text-muted d-block">
-                Time remaining
-              </small>
-
-              <strong
-                className="display-6 d-block"
-                aria-live="polite"
-              >
-                {taskStarted &&
-                !taskComplete
-                  ? formatTime(
-                      secondsRemaining
-                    )
-                  : taskComplete
-                    ? "00:00"
-                    : formatTime(
-                        STAGE_DURATION_SECONDS
-                      )}
-              </strong>
-
-              <small className="text-muted">
-                Stage{" "}
-                {Math.min(
-                  stageIndex + 1,
-                  4
-                )}{" "}
-                of 4
-              </small>
-            </div>
-
-            <div className="study-id-box">
-              <small>
-                Your Study ID
-              </small>
-
-              <strong>
-                {studyId ||
-                  "Not available"}
-              </strong>
-            </div>
+            
           </div>
         </aside>
 
         <section className="col-xl-9">
-          <div className="card research-card chat-card overflow-hidden">
-            <header className="task-header p-4 border-bottom">
+          <div className="card research-card chat-card w-100">
+            <header className="task-header task-header-sticky p-4 border-bottom">
               <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div>
+                <div className="task-header-copy">
                   <p className="text-primary text-uppercase fw-bold small mb-1">
                     Participant task
                   </p>
@@ -1165,7 +1169,7 @@ export default function ChatTask() {
                       ? "Guided activity complete"
                       : taskStarted
                         ? currentStage.title
-                        : "Choose your task"}
+                        : "Choose a task to undertake with the AI assistant"}
                   </h2>
 
                   <p className="text-muted mb-0">
@@ -1173,13 +1177,26 @@ export default function ChatTask() {
                       ? "Review the options below."
                       : taskStarted
                         ? currentStage.summary
-                        : "Select a suitable task before starting."}
+                        : "Choose any suitable workplace or study-related task. Examples are shown below for inspiration only."}
                   </p>
                 </div>
 
-                <span className="badge text-bg-light border">
-                  Approximately 8 minutes
-                </span>
+                <div className="task-header-status">
+                  <span className="badge text-bg-light border task-duration-badge">
+                    Approximately {TOTAL_TASK_MINUTES} minutes
+                  </span>
+
+                  <div className="task-header-timer" aria-live="polite">
+                    <small>Time remaining in {taskStarted && !taskComplete ? currentStage.title : "the current stage"}</small>
+                    <strong>
+                      {taskStarted && !taskComplete
+                        ? formatTime(secondsRemaining)
+                        : taskComplete
+                          ? "00:00"
+                          : formatTime(STAGE_DURATION_SECONDS)}
+                    </strong>
+                  </div>
+                </div>
               </div>
 
               <div
@@ -1202,18 +1219,22 @@ export default function ChatTask() {
             </header>
 
             {!taskStarted ? (
-              <div className="p-4 p-md-5">
+              <div className="task-intro p-4 p-md-5">
                 <h2 className="h4 fw-bold">
-                  Select a suitable task
-                </h2>
+                    Choose a task to undertake with the AI assistant
+                  </h2>
 
-                <p>
-                  Collaborate with the AI
-                  assistant on a non-sensitive
-                  academic, professional,
-                  planning, creative or design
-                  problem.
-                </p>
+                  <p className="mb-2">
+                    You are free to choose any suitable workplace or study-related task.
+                  </p>
+
+                  <p className="mb-0 text-muted">
+                    Need inspiration? The examples below illustrate possible task types. They are guidance only and are not selectable.
+                  </p>
+
+                <h3 className="h6 text-uppercase text-primary fw-bold mt-4">
+                  Example tasks
+                </h3>
 
                 <div className="row g-3 my-3">
                   {TASK_EXAMPLES.map(
@@ -1222,28 +1243,25 @@ export default function ChatTask() {
                         className="col-md-6"
                         key={example}
                       >
-                        <div className="border rounded-3 p-3 h-100">
-                          {example}
+                        <div className="example-task-card" aria-label={`Example task: ${example}`}>
+                          <span className="example-task-label">Example</span>
+                          <p>{example}</p>
                         </div>
                       </div>
                     )
                   )}
                 </div>
 
-                <div className="alert alert-light border">
-                  <strong>
-                    How the task works
-                  </strong>
+                <div className="alert alert-light border guided-task-guide">
+                  <strong>How the guided task works</strong>
 
-                  <p className="mb-0 mt-2">
-                    The activity contains four
-                    automatic stages. Each stage
-                    lasts approximately two
-                    minutes. Continue interacting
-                    with the AI throughout the
-                    activity. The stage changes
-                    automatically.
-                  </p>
+                  <ol className="mb-0 mt-2 ps-3">
+                    <li>Choose your own non-sensitive workplace or study-related task.</li>
+                    <li>Select <strong>Start Guided Task</strong>.</li>
+                    <li>Continue the same conversation through Discover, Develop, Refine and Consolidate.</li>
+                    <li>Each stage lasts approximately three minutes and changes automatically.</li>
+                    <li>A ten-second preparation message appears before each new stage. You may continue with the same task; only the stage focus changes.</li>
+                  </ol>
                 </div>
 
                 {error && (
@@ -1252,13 +1270,15 @@ export default function ChatTask() {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  className="btn btn-indigo btn-lg"
-                  onClick={startTask}
-                >
-                  Start Guided Task
-                </button>
+                <div className="task-intro-actions">
+                  <button
+                    type="button"
+                    className="btn btn-indigo btn-lg"
+                    onClick={startTask}
+                  >
+                    Start Guided Task
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -1294,7 +1314,7 @@ export default function ChatTask() {
                   </div>
                 </section>
 
-                <div className="chat-window p-3 p-md-4">
+                <div className="chat-messages p-3 p-md-4">
                   {messages.map(
                     (message) => (
                       <MessageBubble
@@ -1322,11 +1342,20 @@ export default function ChatTask() {
 
                   {transitioning && (
                     <div
-                      className="alert alert-primary"
+                      className="stage-transition-banner"
                       aria-live="assertive"
                     >
-                      Stage complete. Preparing
-                      the next stage…
+                      <span className="stage-transition-kicker">
+                        {currentStage.title} complete
+                      </span>
+
+                      <h3>Prepare for {STAGES[Math.min(stageIndex + 1, STAGES.length - 1)].title}</h3>
+
+                      <p>
+                        You can continue with the same conversation and task. We are only moving to the next stage focus.
+                      </p>
+
+                      <strong>Next stage begins in {transitionSecondsRemaining} seconds</strong>
                     </div>
                   )}
 
@@ -1368,7 +1397,7 @@ export default function ChatTask() {
                             className="btn btn-outline-primary btn-lg"
                             onClick={restartTask}
                           >
-                            Restart Guided Task
+                            Restart AI Task
                           </button>
 
                           <button
@@ -1383,15 +1412,14 @@ export default function ChatTask() {
                         </div>
                       </div>
                     ) : (
-                      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                      <div className="completion-banner d-flex flex-wrap justify-content-between align-items-center gap-3">
                         <div>
-                          <strong className="d-block">
-                            Task complete
+                          <strong className="d-block h5 mb-1">
+                            Guided AI activity complete
                           </strong>
 
                           <small className="text-muted">
-                            Continue to the
-                            post-task questionnaire.
+                            Please continue to the questionnaire while your experience is still fresh in your mind.
                           </small>
                         </div>
 
@@ -1422,10 +1450,7 @@ export default function ChatTask() {
                         className="form-control"
                         rows="3"
 
-                        disabled={
-                          loading ||
-                          transitioning
-                        }
+                        disabled={loading}
 
                         value={input}
 
@@ -1464,8 +1489,7 @@ export default function ChatTask() {
 
                           disabled={
                             !input.trim() ||
-                            loading ||
-                            transitioning
+                            loading
                           }
                         >
                           {loading

@@ -69,7 +69,25 @@ body {
   font-variant-numeric:tabular-nums;
   font-weight:700;
 }
+/* =========================================================
+   ABERTAY UNIVERSITY LOGO
+========================================================= */
 
+.abertay-logo{
+  width:100px;
+  height:auto;
+  display:block;
+  margin:0 auto;
+  object-fit:contain;
+}
+
+@media (max-width:768px){
+
+  .abertay-logo{
+    width:80px;
+  }
+
+}
 /* =========================================================
    CHAT LAYOUT
 ========================================================= */
@@ -182,7 +200,7 @@ body {
 }
 
 .study-id-box{
-  margin-top:1rem;
+  margin-bottom:1rem;
   background:#f8fafc;
   border:1px solid var(--soft-border);
   border-radius:12px;
@@ -461,5 +479,551 @@ height:32px;
 @media (max-width: 575.98px) {
   .pis-section h2 {
     font-size: 1.05rem;
+  }
+}
+
+/* =========================================================
+   GEORGE + KATHARINA USABILITY REVISIONS
+========================================================= */
+
+/* The right task panel occupies the viewport; messages scroll inside it. */
+.chat-card {
+  height: calc(100vh - 2rem);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-window {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.chat-card > footer,
+.chat-card > .border-top {
+  flex: 0 0 auto;
+}
+
+/* Keep the participant-task heading, stage meaning, duration and timer visible. */
+.task-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 72%);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.task-header-copy {
+  flex: 1 1 430px;
+  min-width: 0;
+}
+
+.task-header-status {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  gap: 0.55rem;
+}
+
+.task-duration-badge {
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.task-header-timer {
+  min-width: 190px;
+  padding: 0.75rem 1rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 14px;
+  background: #eef2ff;
+  text-align: right;
+}
+
+.task-header-timer small {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.task-header-timer strong {
+  display: block;
+  color: var(--indigo);
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* The sidebar remains visible on desktop, but no longer duplicates the timer. */
+.task-sidebar {
+  position: sticky;
+  top: 1rem;
+  z-index: 20;
+  align-self: flex-start;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+/* Task examples are intentionally informational, not controls. */
+.task-intro {
+  padding: 1.25rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+}
+
+.example-task-card {
+  height: 100%;
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  cursor: default;
+  user-select: text;
+}
+
+.example-task-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: none;
+  transform: none;
+}
+
+.example-task-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--indigo);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.example-task-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.guided-task-guide li {
+  margin-bottom: 0.45rem;
+  line-height: 1.55;
+}
+
+.guided-task-guide li:last-child {
+  margin-bottom: 0;
+}
+
+/* Ten-second preparation period between stages. */
+.stage-transition-banner {
+  max-width: 95%;
+  margin: 1rem auto;
+  padding: 1.25rem;
+  border: 1px solid #a5b4fc;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.09);
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.stage-transition-kicker {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.stage-transition-banner h3 {
+  margin-bottom: 0.55rem;
+  color: #3730a3;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.stage-transition-banner p {
+  max-width: 650px;
+  margin: 0 auto 0.65rem;
+  color: #475569;
+}
+
+.stage-transition-banner strong {
+  color: var(--indigo);
+  font-variant-numeric: tabular-nums;
+}
+
+.completion-banner {
+  width: 100%;
+  padding: 1.25rem;
+  border: 1px solid #86efac;
+  border-radius: 16px;
+  background: #ecfdf5;
+}
+
+/* StageIndicator is now display-only rather than clickable. */
+.stage-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1.25rem 0;
+}
+
+.stage-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.8rem;
+  border: 1px solid var(--soft-border);
+  border-radius: 0.9rem;
+  background: #fff;
+  color: var(--ink);
+  cursor: default;
+  text-align: left;
+}
+
+.stage-card > span {
+  width: 1.8rem;
+  height: 1.8rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: var(--indigo);
+  font-weight: 800;
+}
+
+.stage-card small {
+  display: block;
+  margin-top: 0.15rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
+.stage-card.active {
+  border-color: var(--indigo);
+  background: #eef2ff;
+  box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.08);
+}
+
+.stage-card.done > span {
+  background: var(--success-bg);
+  color: #166534;
+}
+
+/* Single-page questionnaire and clearer completion validation. */
+.questionnaire-progress-badge {
+  padding: 0.65rem 0.85rem;
+}
+
+.questionnaire-guidance {
+  line-height: 1.6;
+}
+
+.questionnaire-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.questionnaire-item {
+  padding: 1.25rem;
+  border: 1px solid var(--soft-border);
+  border-radius: 16px;
+  background: #ffffff;
+  scroll-margin-top: 1.5rem;
+}
+
+.questionnaire-item-missing {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.questionnaire-item-heading {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.questionnaire-number {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--indigo-light);
+  color: var(--indigo);
+  font-weight: 800;
+}
+
+.questionnaire-required-message {
+  color: #92400e;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1199px) {
+  .chat-card {
+    height: auto;
+    min-height: auto;
+  }
+
+  .task-sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .task-header-sticky {
+    top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .task-header-status {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .task-duration-badge,
+  .task-header-timer {
+    width: 100%;
+    text-align: left;
+  }
+
+  .task-header-timer {
+    min-width: 0;
+  }
+
+  .questionnaire-item {
+    padding: 1rem;
+  }
+}
+
+
+/* =========================================================
+   FINAL CHAT TASK LAYOUT OVERRIDES
+   - Natural page scrolling
+   - No internal chat scrollbar
+   - Only Participant Task header is sticky
+   - Stage guidance scrolls normally
+========================================================= */
+
+.chat-card {
+  height: auto !important;
+  min-height: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: visible !important;
+}
+
+/* Keep only the participant-task header sticky. */
+.task-header,
+.task-header-sticky {
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 72%);
+}
+
+.task-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* The stage goal and guidance must scroll with the page. */
+.stage-guidance {
+  position: static !important;
+  flex: none !important;
+  padding: 1.4rem;
+  background: #fbfcff;
+  border-top: 1px solid var(--soft-border);
+  border-bottom: 1px solid var(--soft-border);
+}
+
+.stage-guidance * {
+  position: static !important;
+}
+
+/* Natural document flow for chat messages. */
+.chat-messages,
+.chat-window {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: none !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  overscroll-behavior: auto !important;
+  scrollbar-gutter: auto !important;
+  -webkit-overflow-scrolling: auto !important;
+  background: #fff;
+}
+
+/* The pre-task content also uses normal page scrolling. */
+.task-intro-scroll {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: none !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  overscroll-behavior: auto !important;
+  scrollbar-gutter: auto !important;
+}
+
+/* Footer remains in normal flow below the conversation. */
+.chat-card > footer,
+.chat-card > .border-top {
+  flex: none !important;
+  position: static !important;
+  background: #fff;
+}
+
+/* Keep the task duration badge above the timer. */
+.task-header-status {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: end;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.task-duration-badge {
+  display: inline-flex;
+  justify-content: center;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+.task-header-timer {
+  min-width: 190px;
+  margin-top: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid #c7d2fe;
+  border-radius: 14px;
+  background: #eef2ff;
+  text-align: right;
+}
+
+.task-header-timer small {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.task-header-timer strong {
+  display: block;
+  color: var(--indigo);
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Intro presentation */
+.task-intro {
+  border: 1px solid #c7d2fe;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%);
+}
+
+.task-intro-actions {
+  margin-top: 1.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.example-task-card {
+  height: 100%;
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  cursor: default;
+  user-select: text;
+}
+
+.example-task-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: none;
+  transform: none;
+}
+
+.example-task-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--indigo);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.example-task-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* Stage transition notice */
+.stage-transition-banner {
+  max-width: 95%;
+  margin: 1rem auto;
+  padding: 1.25rem;
+  border: 1px solid #a5b4fc;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.09);
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Responsive behaviour */
+@media (max-width: 1199px) {
+  .chat-card {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .task-header-sticky {
+    position: sticky;
+    top: 0;
+  }
+
+  .task-sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 768px) {
+  .task-header-status {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .task-duration-badge,
+  .task-header-timer {
+    width: 100%;
+    text-align: left;
+  }
+
+  .task-header-timer {
+    min-width: 0;
   }
 }

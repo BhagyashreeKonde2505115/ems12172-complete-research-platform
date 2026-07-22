@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { consentStatements } from "../data/content.js";
+import {
+  consentIntroduction,
+  consentStatements,
+  privacyNoticeText,
+  privacyNoticeUrl,
+  studyDetails,
+} from "../data/content.js";
 import { useExperiment } from "../context/ExperimentContext.jsx";
 import {
   saveConsent,
@@ -9,12 +15,6 @@ import {
   downloadConsentPDF,
   downloadPISPDF,
 } from "../utils/pdfDownloads.js";
-
-const STUDY_DETAILS = {
-  ethicsReference: "EMS12277",
-  title:
-    "Evaluating an AI Assistant for Workplace and Study-Related Tasks",
-};
 
 export default function Consent() {
   const {
@@ -29,7 +29,6 @@ export default function Consent() {
   const [checks, setChecks] = useState(
     Array(consentStatements.length).fill(false)
   );
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -71,16 +70,11 @@ export default function Consent() {
         ),
       ]);
 
-      const newStudyId =
-        startResponse?.data?.study_id;
-
-      const assignedCondition =
-        startResponse?.data?.condition;
+      const newStudyId = startResponse?.data?.study_id;
+      const assignedCondition = startResponse?.data?.condition;
 
       if (!newStudyId) {
-        throw new Error(
-          "The backend did not return a Study ID."
-        );
+        throw new Error("The backend did not return a Study ID.");
       }
 
       setStudyId(newStudyId);
@@ -107,10 +101,7 @@ export default function Consent() {
 
       setStep("chat");
     } catch (requestError) {
-      console.error(
-        "Consent flow failed:",
-        requestError
-      );
+      console.error("Consent flow failed:", requestError);
 
       setError(
         requestError?.response?.data?.error ||
@@ -139,216 +130,188 @@ export default function Consent() {
                 </h1>
 
                 <p className="text-muted mb-0">
-                  Please confirm each statement before continuing.
+                  Please read the consent information and confirm each statement
+                  before continuing.
                 </p>
               </div>
 
               <span className="badge text-bg-light border">
-                Ethics Reference:{" "}
-                {STUDY_DETAILS.ethicsReference}
+                Ethics Reference: {studyDetails.ethicsReference}
               </span>
             </header>
 
             <div className="alert alert-light border mb-4">
-              <strong>Study:</strong>{" "}
-              {STUDY_DETAILS.title}
+              <strong>Study:</strong> {studyDetails.title}
               <br />
               <strong>Study ID:</strong>{" "}
               {studyId ||
                 "A new Study ID will be generated after you submit consent."}
             </div>
 
-            <section className="mb-4">
-              <h2 className="h5 fw-bold mb-3">
+            <section className="mb-4" aria-labelledby="consent-introduction">
+              <h2 id="consent-introduction" className="h5 fw-bold mb-3">
+                Consent statement
+              </h2>
+
+              <div className="alert alert-info border-0 mb-0">
+                {consentIntroduction}
+              </div>
+            </section>
+
+            <section className="mb-4" aria-labelledby="consent-statements">
+              <h2 id="consent-statements" className="h5 fw-bold mb-3">
                 Consent statements
               </h2>
 
-              {consentStatements.map(
-                (statement, index) => (
-                  <label
-                    key={statement}
-                    className={`choice-card d-flex align-items-start gap-3 border rounded-3 p-3 mb-2 ${
-                      checks[index]
-                        ? "selected"
-                        : ""
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="form-check-input mt-1"
-                      checked={checks[index]}
-                      onChange={() =>
-                        updateCheck(index)
-                      }
-                    />
+              {consentStatements.map((statement, index) => (
+                <label
+                  key={statement}
+                  className={`choice-card d-flex align-items-start gap-3 border rounded-3 p-3 mb-2 ${
+                    checks[index] ? "selected" : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="form-check-input mt-1"
+                    checked={checks[index]}
+                    onChange={() => updateCheck(index)}
+                  />
 
-                    <span className="small">
-                      {statement}
-                    </span>
-                  </label>
-                )
-              )}
+                  <span className="small">{statement}</span>
+                </label>
+              ))}
             </section>
 
             <hr className="my-4" />
 
-            <section>
-              <h2 className="h5 fw-bold mb-3">
+            <section aria-labelledby="background-information">
+              <h2 id="background-information" className="h5 fw-bold mb-3">
                 Basic background information
               </h2>
 
               <p className="text-muted small">
-                These questions are collected for research reporting and are not used to identify you.
+                These questions are collected for research reporting and are
+                not used to identify you.
               </p>
 
               <div className="row g-3">
                 <div className="col-md-4">
-                  <label
-                    htmlFor="age-band"
-                    className="form-label"
-                  >
+                  <label htmlFor="age-band" className="form-label">
                     Age band
                   </label>
 
                   <select
                     id="age-band"
                     className="form-select"
-                    value={
-                      demographics.ageBand || ""
-                    }
+                    value={demographics.ageBand || ""}
                     onChange={(event) =>
                       setDemographics({
                         ...demographics,
-                        ageBand:
-                          event.target.value,
+                        ageBand: event.target.value,
                       })
                     }
                   >
-                    <option value="">
-                      Select
-                    </option>
-                    <option value="18–24">
-                      18–24
-                    </option>
-                    <option value="25–34">
-                      25–34
-                    </option>
-                    <option value="35–44">
-                      35–44
-                    </option>
-                    <option value="45–54">
-                      45–54
-                    </option>
-                    <option value="55+">
-                      55+
-                    </option>
+                    <option value="">Select</option>
+                    <option value="18–24">18–24</option>
+                    <option value="25–34">25–34</option>
+                    <option value="35–44">35–44</option>
+                    <option value="45–54">45–54</option>
+                    <option value="55+">55+</option>
                   </select>
                 </div>
 
                 <div className="col-md-4">
-                  <label
-                    htmlFor="gender"
-                    className="form-label"
-                  >
+                  <label htmlFor="gender" className="form-label">
                     Gender
                   </label>
 
                   <select
                     id="gender"
                     className="form-select"
-                    value={
-                      demographics.gender || ""
-                    }
+                    value={demographics.gender || ""}
                     onChange={(event) =>
                       setDemographics({
                         ...demographics,
-                        gender:
-                          event.target.value,
+                        gender: event.target.value,
                       })
                     }
                   >
-                    <option value="">
-                      Select
-                    </option>
-                    <option value="Female">
-                      Female
-                    </option>
-                    <option value="Male">
-                      Male
-                    </option>
-                    <option value="Non-binary">
-                      Non-binary
-                    </option>
-                    <option value="Prefer not to say">
-                      Prefer not to say
-                    </option>
-                    <option value="Self-describe">
-                      Self-describe
-                    </option>
+                    <option value="">Select</option>
+                    <option value="Female">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                    <option value="Self-describe">Self-describe</option>
                   </select>
                 </div>
 
                 <div className="col-md-4">
-                  <label
-                    htmlFor="current-status"
-                    className="form-label"
-                  >
+                  <label htmlFor="current-status" className="form-label">
                     Current status
                   </label>
 
                   <select
                     id="current-status"
                     className="form-select"
-                    value={
-                      demographics.status || ""
-                    }
+                    value={demographics.status || ""}
                     onChange={(event) =>
                       setDemographics({
                         ...demographics,
-                        status:
-                          event.target.value,
+                        status: event.target.value,
                       })
                     }
                   >
-                    <option value="">
-                      Select
-                    </option>
-                    <option value="Student">
-                      Student
-                    </option>
-                    <option value="Employed">
-                      Employed
-                    </option>
-                    <option value="Self-employed">
-                      Self-employed
-                    </option>
+                    <option value="">Select</option>
+                    <option value="Student">Student</option>
+                    <option value="Employed">Employed</option>
+                    <option value="Self-employed">Self-employed</option>
                     <option value="Not currently employed">
                       Not currently employed
                     </option>
-                    <option value="Other">
-                      Other
-                    </option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
               </div>
             </section>
 
-            {error && (
-              <div
-                className="alert alert-danger mt-4"
-                role="alert"
+            <section
+              className="alert alert-light border mt-4 mb-0"
+              aria-labelledby="privacy-information"
+            >
+              <h2 id="privacy-information" className="h6 fw-bold">
+                Privacy and complaints information
+              </h2>
+
+              <p className="small mb-1">{privacyNoticeText}</p>
+
+              <a
+                className="small"
+                href={privacyNoticeUrl}
+                target="_blank"
+                rel="noreferrer"
               >
+                {privacyNoticeUrl}
+              </a>
+            </section>
+
+            {error && (
+              <div className="alert alert-danger mt-4" role="alert">
                 {error}
               </div>
+            )}
+
+            {!allChecked && (
+              <p className="small text-muted mt-4 mb-0" aria-live="polite">
+                Please confirm every consent statement and complete all three
+                background-information fields before proceeding.
+              </p>
             )}
 
             <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4">
               <button
                 type="button"
                 className="btn btn-outline-secondary"
-                onClick={() =>
-                  setStep("pis")
-                }
+                onClick={() => setStep("pis")}
                 disabled={loading}
               >
                 Back to Information Sheet
@@ -357,17 +320,12 @@ export default function Consent() {
               <button
                 type="button"
                 className="btn btn-indigo btn-lg"
-                disabled={
-                  !allChecked ||
-                  loading
-                }
-                onClick={
-                  handleConsentSubmit
-                }
+                disabled={!allChecked || loading}
+                onClick={handleConsentSubmit}
               >
                 {loading
                   ? "Creating your study session…"
-                  : "I Agree and Wish to Proceed"}
+                  : "I Consent and Wish to Proceed"}
               </button>
             </div>
 
@@ -376,7 +334,8 @@ export default function Consent() {
                 className="small text-muted mt-3 mb-0 text-end"
                 aria-live="polite"
               >
-                Saving consent, creating your Study ID, and preparing the task. Please do not close this page.
+                Saving consent, creating your Study ID and preparing the task.
+                Please do not close this page.
               </p>
             )}
           </div>

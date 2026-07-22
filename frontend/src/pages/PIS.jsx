@@ -1,5 +1,12 @@
-import { pisText } from "../data/content.js";
+import {
+  pisText,
+  privacyNoticeText,
+  privacyNoticeUrl,
+  studyDetails,
+} from "../data/content.js";
 import { useExperiment } from "../context/ExperimentContext.jsx";
+import abertayLogo from "../assets/abertay-logo.png";
+
 
 export default function PIS() {
   const { setStep } = useExperiment();
@@ -15,6 +22,11 @@ export default function PIS() {
           <div className="card research-card p-4 p-md-5">
             <header className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
               <div>
+                <img
+    src={abertayLogo}
+    alt="Abertay University"
+    className="abertay-logo mb-3"
+  />
                 <p className="text-uppercase text-primary fw-bold small mb-1">
                   Abertay University Research
                 </p>
@@ -30,41 +42,27 @@ export default function PIS() {
               </div>
 
               <span className="badge text-bg-light border">
-                Ethics Reference: EMS12277
+                Ethics Reference: {studyDetails.ethicsReference}
               </span>
             </header>
 
             <section className="pis-summary border rounded-4 p-3 p-md-4 mb-4">
               <div className="row g-3">
                 <div className="col-md-6">
-                  <span className="small text-muted d-block">
-                    Study title
-                  </span>
-
-                  <strong>
-                    Evaluating an AI Assistant for Workplace and Study-Related
-                    Tasks
-                  </strong>
+                  <span className="small text-muted d-block">Study title</span>
+                  <strong>{studyDetails.title}</strong>
                 </div>
 
                 <div className="col-md-3">
                   <span className="small text-muted d-block">
                     Estimated duration
                   </span>
-
-                  <strong>
-                    35–40 minutes
-                  </strong>
+                  <strong>{studyDetails.duration.replace("Approximately ", "")}</strong>
                 </div>
 
                 <div className="col-md-3">
-                  <span className="small text-muted d-block">
-                    Study ID
-                  </span>
-
-                  <strong>
-                    Generated after consent
-                  </strong>
+                  <span className="small text-muted d-block">Study ID</span>
+                  <strong>Generated after consent</strong>
                 </div>
               </div>
             </section>
@@ -73,10 +71,7 @@ export default function PIS() {
               className="pis-content"
               aria-labelledby="pis-content-heading"
             >
-              <h2
-                id="pis-content-heading"
-                className="visually-hidden"
-              >
+              <h2 id="pis-content-heading" className="visually-hidden">
                 Participant information
               </h2>
 
@@ -95,7 +90,19 @@ export default function PIS() {
               </pre>
             </section>
 
-            <div className="alert alert-info border-0 mt-4 mb-4">
+            <div className="alert alert-light border mt-4 mb-3">
+              <strong>Privacy and complaints information</strong>
+              <p className="mb-1 mt-2">{privacyNoticeText}</p>
+              <a
+                href={privacyNoticeUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {privacyNoticeUrl}
+              </a>
+            </div>
+
+            <div className="alert alert-info border-0 mb-4">
               Continuing to the next page does not yet enrol you in the study.
               You will be asked to confirm each informed-consent statement
               before a participant Study ID is created.

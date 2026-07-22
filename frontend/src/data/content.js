@@ -1,61 +1,109 @@
+export const studyDetails = {
+  ethicsReference: "EMS12277",
+  title: "Evaluating an AI Assistant for Workplace and Study-Related Tasks",
+  researcher: "Bhagyashree Yashwant Konde",
+  researcherEmail: "2505115@abertay.ac.uk",
+  supervisors:
+    "Dr George Lovell (p.g.lovell@abertay.ac.uk) and Dr Andrea Szymkowiak (a.szymkowiak@abertay.ac.uk)",
+  duration: "Approximately 35–40 minutes",
+};
+
+export const consentIntroduction =
+  "Abertay University attaches high priority to the ethical conduct of research. Please consider the following before indicating your consent on this form. Indicating your consent confirms that you are willing to participate in the research, however, indicating consent does not commit you to anything you do not wish to do and you are free to withdraw your participation at any time. You are indicating consent under the following assumptions:";
+
 export const consentStatements = [
-  "I confirm that I have read and understood the Participant Information Sheet for this study and have had the opportunity to ask questions.",
-  "I understand that my participation is voluntary and that I may stop at any time without giving a reason and without negative consequences.",
-  "I understand that I may request withdrawal of my data within the period stated in the Participant Information Sheet by quoting my study ID.",
+  "I understand the contents of the participant information sheet and consent form.",
+  "I have been given the opportunity to ask questions about the research and have had them answered satisfactorily.",
+  "I understand that my participation is entirely voluntary and that I can withdraw from the research (parts of the project or the entire project) at any time without penalty and without having to provide an explanation.",
+  "I understand who has access to my data and how it will be handled at all stages of the research project.",
   "I understand that I will interact with an AI-powered assistant and that its responses are computer-generated and may be inaccurate.",
-  "I understand that my responses will be pseudonymised and that my name will not be stored with the research data.",
-  "I consent to my anonymised and pseudonymised data being used in the researcher's MSc dissertation and related academic outputs.",
-  "I understand that my data will be stored and retained in accordance with the approved ethics application and university data-management requirements.",
+  "I understand that my research data will be stored in pseudonymised form and that my name will not be stored with the research data.",
+  "I understand that anonymised or pseudonymised findings from this research may be used in the researcher's MSc dissertation and related academic publications or presentations.",
+  "I understand the data-retention arrangements described in the Participant Information Sheet, including that research data must be retained in accordance with Abertay University's research data-retention requirements.",
   "I confirm that I am aged 18 or over and meet the inclusion criteria described in the Participant Information Sheet.",
-  "I understand that I may skip a question or stop the session if I prefer not to continue.",
-  "I agree to take part in this research study."
+  "I understand that I may choose not to answer an individual question or may stop participating at any time.",
+  "I consent to take part in this study conducted by Bhagyashree Yashwant Konde.",
 ];
+
+export const privacyNoticeText =
+  "You can find our procedure for complaints (regarding research projects) and our privacy notice and legal basis for processing research data at:";
+
+export const privacyNoticeUrl =
+  "https://www.abertay.ac.uk/legal/privacy-notice-for-research-participants/";
 
 export const pisText = `Study Title: Evaluating an AI Assistant for Workplace and Study-Related Tasks
 Researcher: Bhagyashree Yashwant Konde (2505115@abertay.ac.uk)
-Supervisors: Dr G. Lovell (p.g.lovell@abertay.ac.uk), Dr A. Szymkowiak (a.szymkowiak@abertay.ac.uk)
+Supervisors: Dr George Lovell (p.g.lovell@abertay.ac.uk) and Dr Andrea Szymkowiak (a.szymkowiak@abertay.ac.uk)
 Duration: Approximately 35–40 minutes
 
 1. What is this study about?
-We are researchers at Abertay University investigating how AI-powered chat assistants can best support people when doing creative work tasks for example, when brainstorming ideas or planning a professional event. We are interested in whether the way an AI assistant communicates its tone and style of writing affects how useful, trustworthy, and enjoyable it feels to work with. This research is part of an MSc project in the Faculty of Design, Informatics and Business and is motivated by a realworld challenge identified by an industry partner working in the field of workplace AI tools.
+We are researchers at Abertay University investigating how AI-powered chat assistants can support people while they complete workplace and study-related tasks, such as planning, writing, brainstorming, designing or problem-solving. We are interested in whether the way an AI assistant communicates—particularly its tone and style of writing—affects how useful, trustworthy and enjoyable it feels to work with. This research forms part of an MSc project in the Faculty of Design, Informatics and Business.
 
 2. Why have I been invited?
-You have been invited to take part because you are aged 18 or over and have access to a web browser. No prior experience with AI tools is required. We are recruiting 60 participants in total.
+You have been invited to take part because you are aged 18 or over and have access to a web browser. No previous experience of AI tools is required. We aim to recruit approximately 60 participants.
 
 3. Do I have to take part?
-No. Participation is completely voluntary. You are free to decline to take part or to withdraw at any time during or after the study, without giving a reason and without any negative consequences whatsoever. If you wish to withdraw your data after completing the session, you may do so up to two weeks after your participation date by emailing the researcher at 2505115@abertay.ac.uk. Your data will be permanently deleted with no questions asked.
+This form has been written to help you decide if you would like to take part. It is up to you and you alone whether you wish to take part. If you do decide to take part you will be free to withdraw at any time without providing a reason and without penalty.
 
-4. What will happen if I take part?
-You will complete a short background and AI-experience section, interact with an AI assistant on a task of your choice, complete a questionnaire and written interview, and then read a full debrief.
+If you wish to withdraw your research data after completing the session, you may do so up to two weeks after your participation date by emailing 2505115@abertay.ac.uk and quoting your participant Study ID. After the approved withdrawal period, it may no longer be possible to identify and remove your data once it has been fully anonymised and combined with other participants' data.
+
+4. What will I be required to do?
+You will provide brief background information, interact with an AI assistant on a non-sensitive workplace or study-related task of your choice, complete a post-task questionnaire and provide written responses to interview-style questions. You will then be shown a debrief. The full study is expected to take approximately 35–40 minutes.
+
+You may choose not to answer an individual question and may stop participating at any time without giving a reason and without penalty.
 
 5. Are there any risks?
-There are no significant risks associated with taking part in this study. The task is a normal, nonsensitive work-planning activity similar to planning a meeting or event. You will not be asked any personal, sensitive, or distressing questions. You may stop at any point without giving a reason.
+There are no significant risks expected from taking part in this study. You will be asked to choose a normal, non-sensitive workplace or study-related task. You should not enter personal, confidential, commercially sensitive or distressing information into the AI assistant. AI-generated responses may be inaccurate, incomplete or inappropriate, and should not be treated as professional advice.
 
 6. Are there benefits?
-There are no direct personal benefits to participation. However, your contribution will help researchers understand how AI workplace tools should be designed to be more trustworthy, enjoyable, and effective which could benefit users of AI tools in professional settings in the future.
+There are no guaranteed direct personal benefits from taking part. Your contribution may help researchers understand how workplace and study-related AI assistants can be designed to support trust, creativity, psychological safety, usability and user experience.
 
+7. How will you handle my data?
+Your data will be stored in a pseudonymised form and will only be accessible to the researcher, Bhagyashree Yashwant Konde, and the project supervisors, Dr George Lovell and Dr Andrea Szymkowiak. A participant Study ID will be used instead of your name. The research platform does not require your name, and your Study ID should be retained by you if you may wish to request withdrawal.
 
-7. What happens to my data?
-Your responses will be kept strictly confidential. Your name will not be linked to your data at any point. All data will be given a pseudonymous reference code before being stored or analysed. Data will be stored securely on Abertay University password-protected, encrypted servers. Data will be retained for ten years and then permanently deleted. Results will be reported only at group level no individual's responses will be identifiable in any report or publication. No data will be shared with any third party, including the industry partner who inspired this research. This study complies fully with the General Data Protection Regulation (GDPR) 2018 and Abertay University's Data Storage Policy.
+Your data will be stored securely using password-protected systems approved for the research. Data that could identify you will be removed at the earliest appropriate opportunity. Your responses will be treated in the strictest confidence. Individuals will not be identifiable when the research is disseminated in a dissertation, publication, presentation or other academic output.
 
-8. Withdrawal
-The debrief will repeat how to request withdrawal using your study ID within the approved withdrawal period.
+Abertay University acts as Data Controller (DataProtectionOfficer@abertay.ac.uk).
 
-9. Results
-The results of this study will be written up as an MSc dissertation and may also be submitted for publication in an academic journal or conference. In any such publication, all data will be presented in anonymised and aggregated form. No individual participant will be identifiable.
+8. Retention of research data
+Researchers are obliged to retain research data for up to 10 years’ post-publication, however your anonymised research data may be retained indefinitely (e.g., so that researchers engage in open research, and other researchers can access their data to confirm the conclusions of published work). Consistent with our data retention policy, researchers retain consent forms for as long as we continue to hold information about a data subject and for 10 years for published research (including Research Degree thesis).
 
-10. Who has reviewed this study?
-This study has been reviewed and approved by the Abertay University School Research Ethics Committee. Ethics reference:  EMS12277.
+9. Withdrawal
+You may stop taking part at any point without providing a reason and without penalty. To request withdrawal of your data within two weeks of your participation date, email 2505115@abertay.ac.uk and provide your participant Study ID. The debrief will repeat this information.
 
-11. Contact
-Researcher: 2505115@abertay.ac.uk. Dr George Lovell p.g.lovell@abertay.ac.uk Dr Andrea Szymkowiak a.szymkowiak@abertay.ac.uk Ethics concerns: researchethics@abertay.ac.uk.`;
+10. Results
+The results will be written up as an MSc dissertation and may also be submitted for publication or presentation. Research findings will be presented in anonymised or aggregated form so that individual participants cannot reasonably be identified.
+
+11. Who has reviewed this study?
+This study has been reviewed and approved by the relevant Abertay University research ethics process. Ethics reference: EMS12277.
+
+12. Contact
+Researcher:
+Bhagyashree Yashwant Konde
+2505115@abertay.ac.uk
+
+Supervisors:
+Dr George Lovell
+p.g.lovell@abertay.ac.uk
+
+Dr Andrea Szymkowiak
+a.szymkowiak@abertay.ac.uk
+
+Data protection enquiries:
+DataProtectionOfficer@abertay.ac.uk
+
+Research ethics enquiries:
+researchethics@abertay.ac.uk
+
+You can find our procedure for complaints (regarding research projects) and our privacy notice and legal basis for processing research data at:
+https://www.abertay.ac.uk/legal/privacy-notice-for-research-participants/`;
 
 export const interviewQuestions = [
-  "how would you describe your overall experience of working with the AI assistant on the task you chose today?",
+  "How would you describe your overall experience of working with the AI assistant on the task you chose today?",
   "During the session, to what extent did you feel you could trust or rely on the assistant? Please consider both the information it provided and how comfortable you felt working with it.",
-  "How did working with the assistant affect the quality, quantity, or development of your ideas or work compared with doing the task alone?",
+  "How did working with the assistant affect the quality, quantity or development of your ideas or work compared with doing the task alone?",
   "How would you describe the assistant's communication style, and how did that style affect your experience?",
   "Setting aside whether it was useful, how did the interaction make you feel? What contributed to that feeling?",
   "If you were advising a team building an AI assistant for professional or academic work, what would you tell them about how it should communicate with users?",
-  "Is there anything else about today's interaction, or about using AI assistants more generally, that you would like to add?"
+  "Is there anything else about today's interaction, or about using AI assistants more generally, that you would like to add?",
 ];
