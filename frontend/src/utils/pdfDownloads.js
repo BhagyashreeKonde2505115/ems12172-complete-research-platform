@@ -4,7 +4,10 @@ import {
   pisText,
 } from "../data/content.js";
 
+
+
 const STUDY_DETAILS = {
+  
   title:
     "Evaluating an AI Assistant for Workplace and Study-Related Tasks",
   ethicsReference: "EMS12277",

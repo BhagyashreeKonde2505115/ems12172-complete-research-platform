@@ -8,6 +8,8 @@ export const studyDetails = {
   duration: "Approximately 35–40 minutes",
 };
 
+export const mandatoryDataRetentionText = `Researchers are obliged to retain research data for up to 10 years’ post-publication, however your anonymised research data may be retained indefinitely (e.g., so that researchers engage in open research, and other researchers can access their data to confirm the conclusions of published work). Consistent with our data retention policy, researchers retain consent forms for as long as we continue to hold information about a data subject and for 10 years for published research (including Research Degree thesis).`;
+
 export const consentIntroduction =
   "Abertay University attaches high priority to the ethical conduct of research. Please consider the following before indicating your consent on this form. Indicating your consent confirms that you are willing to participate in the research, however, indicating consent does not commit you to anything you do not wish to do and you are free to withdraw your participation at any time. You are indicating consent under the following assumptions:";
 
@@ -19,7 +21,7 @@ export const consentStatements = [
   "I understand that I will interact with an AI-powered assistant and that its responses are computer-generated and may be inaccurate.",
   "I understand that my research data will be stored in pseudonymised form and that my name will not be stored with the research data.",
   "I understand that anonymised or pseudonymised findings from this research may be used in the researcher's MSc dissertation and related academic publications or presentations.",
-  "I understand the data-retention arrangements described in the Participant Information Sheet, including that research data must be retained in accordance with Abertay University's research data-retention requirements.",
+  "I confirm that I have read and understood the mandatory information concerning the retention of research data displayed on this consent form.",
   "I confirm that I am aged 18 or over and meet the inclusion criteria described in the Participant Information Sheet.",
   "I understand that I may choose not to answer an individual question or may stop participating at any time.",
   "I consent to take part in this study conducted by Bhagyashree Yashwant Konde.",

@@ -1,5 +1,5 @@
 import { useExperiment } from "../context/ExperimentContext.jsx";
-
+import abertayLogo from "../assets/abertay-logo.png";
 export default function Debrief() {
   const { studyId, setStep } = useExperiment();
 
@@ -8,6 +8,11 @@ export default function Debrief() {
       <div className="row justify-content-center">
         <div className="col-lg-9">
           <div className="card research-card p-4 p-md-5 shadow-sm">
+            <img
+                src={abertayLogo}
+                alt="Abertay University"
+                className="abertay-logo mb-3"
+              />
             <p className="text-primary fw-bold small text-uppercase mb-2">
               EMS12277 Debrief Sheet
             </p>

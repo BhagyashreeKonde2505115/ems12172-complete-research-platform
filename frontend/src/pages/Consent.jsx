@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   consentIntroduction,
   consentStatements,
+  mandatoryDataRetentionText,
   privacyNoticeText,
   privacyNoticeUrl,
   studyDetails,
@@ -15,6 +16,8 @@ import {
   downloadConsentPDF,
   downloadPISPDF,
 } from "../utils/pdfDownloads.js";
+
+import abertayLogo from "../assets/abertay-logo.png";
 
 export default function Consent() {
   const {
@@ -47,9 +50,7 @@ export default function Consent() {
   }
 
   async function handleConsentSubmit() {
-    if (!allChecked || loading) {
-      return;
-    }
+    if (!allChecked || loading) return;
 
     setLoading(true);
     setError("");
@@ -61,9 +62,7 @@ export default function Consent() {
           window.setTimeout(
             () =>
               reject(
-                new Error(
-                  "The connection timed out. Please try again."
-                )
+                new Error("The connection timed out. Please try again.")
               ),
             30000
           )
@@ -121,6 +120,11 @@ export default function Consent() {
           <div className="card research-card p-4 p-md-5">
             <header className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
               <div>
+                <img
+                    src={abertayLogo}
+                    alt="Abertay University"
+                    className="abertay-logo mb-3"
+                  />
                 <p className="text-uppercase text-primary fw-bold small mb-1">
                   Abertay University Research
                 </p>
@@ -143,14 +147,32 @@ export default function Consent() {
             <div className="alert alert-light border mb-4">
               <strong>Study:</strong> {studyDetails.title}
               <br />
-              <strong>Study ID:</strong>{" "}
+              <strong>Participant Study ID:</strong>{" "}
               {studyId ||
-                "A new Study ID will be generated after you submit consent."}
+                "A Study ID will be generated automatically after you provide consent."}
             </div>
+
+            <section
+              className="mb-4"
+              aria-labelledby="mandatory-data-retention"
+            >
+              <div className="alert alert-warning border mb-0">
+                <h2
+                  id="mandatory-data-retention"
+                  className="h5 fw-bold mb-3"
+                >
+                  Retention of research data
+                </h2>
+
+                <p className="mb-0">
+                  {mandatoryDataRetentionText}
+                </p>
+              </div>
+            </section>
 
             <section className="mb-4" aria-labelledby="consent-introduction">
               <h2 id="consent-introduction" className="h5 fw-bold mb-3">
-                Consent statement
+                Participant Consent
               </h2>
 
               <div className="alert alert-info border-0 mb-0">
