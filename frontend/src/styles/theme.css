@@ -1029,69 +1029,132 @@ height:32px;
 
 
 /* =========================================================
-   QUESTIONNAIRE LIKERT HEADER ALIGNMENT
-   Uses the same number of columns for labels and scale points,
-   so 5-point and 7-point scales align consistently.
+   QUESTIONNAIRE LIKERT SCALE
+   Aligns the endpoint labels directly above the first and
+   last response options for both 5-point and 7-point scales.
 ========================================================= */
 
 .questionnaire-likert {
   width: 100%;
   min-width: 0;
+  margin-top: 1rem;
 }
 
-.questionnaire-likert-labels,
-.questionnaire-likert-options {
+.questionnaire-likert-grid {
   display: grid;
-  grid-template-columns: repeat(var(--likert-points), minmax(0, 1fr));
-  column-gap: 0.5rem;
+  grid-template-columns:
+    repeat(var(--likert-points), minmax(0, 1fr));
+  column-gap: clamp(0.35rem, 1.3vw, 1rem);
+  width: 100%;
 }
 
 .questionnaire-likert-labels {
   align-items: end;
-  margin-bottom: 0.55rem;
-  color: #64748b;
-  font-size: 0.82rem;
-  line-height: 1.3;
+  margin-bottom: 0.65rem;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.35;
 }
 
 .questionnaire-likert-label {
   min-width: 0;
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 
 .questionnaire-likert-label-min {
   grid-column: 1;
-  justify-self: start;
-  text-align: left;
+  justify-self: center;
+  text-align: center;
 }
 
 .questionnaire-likert-label-max {
   grid-column: var(--likert-points);
-  justify-self: end;
-  text-align: right;
+  justify-self: center;
+  text-align: center;
 }
 
-.questionnaire-likert-button {
-  width: 100%;
+.questionnaire-likert-options {
+  align-items: start;
+}
+
+.questionnaire-likert-choice {
+  display: grid;
+  justify-items: center;
+  align-items: start;
+  gap: 0.35rem;
   min-width: 0;
-  min-height: 42px;
-  padding-inline: 0.35rem;
-  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  user-select: none;
+}
+
+.questionnaire-likert-choice input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--indigo, #4f46e5);
+}
+
+.questionnaire-likert-circle {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 1.05rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.questionnaire-likert-choice:hover .questionnaire-likert-circle {
+  border-color: var(--indigo, #4f46e5);
+  transform: translateY(-1px);
+}
+
+.questionnaire-likert-choice.selected .questionnaire-likert-circle {
+  border-color: var(--indigo, #4f46e5);
+  background: var(--indigo, #4f46e5);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.2);
+}
+
+.questionnaire-likert-choice input:focus-visible
+  + .questionnaire-likert-circle {
+  outline: 3px solid rgba(79, 70, 229, 0.25);
+  outline-offset: 3px;
+}
+
+.questionnaire-likert-choice.disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.questionnaire-likert-choice.disabled input {
+  cursor: not-allowed;
 }
 
 @media (max-width: 575.98px) {
-  .questionnaire-likert-labels,
-  .questionnaire-likert-options {
-    column-gap: 0.3rem;
+  .questionnaire-likert-grid {
+    column-gap: 0.2rem;
   }
 
   .questionnaire-likert-labels {
-    font-size: 0.75rem;
+    font-size: 0.76rem;
   }
 
-  .questionnaire-likert-button {
-    min-height: 40px;
-    padding-inline: 0.2rem;
+  .questionnaire-likert-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 0.95rem;
   }
 }

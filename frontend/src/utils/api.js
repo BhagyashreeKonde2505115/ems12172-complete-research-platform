@@ -4,7 +4,7 @@ const ENV_API_URL = import.meta.env.VITE_API_URL;
 
 if (import.meta.env.PROD && !ENV_API_URL) {
   throw new Error(
-    "VITE_API_URL is missing. Add the Render backend URL in Vercel Environment Variables and redeploy."
+    "VITE_API_URL is missing. Add the Render backend URL in your deployment environment variables and redeploy."
   );
 }
 
@@ -19,7 +19,13 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 30000,
+
+  /*
+   * Gemini can need more than 30 seconds during temporary demand spikes.
+   * The backend has a bounded total AI window of 140 seconds, so the browser
+   * waits slightly longer before cancelling the request.
+   */
+  timeout: 160000,
 });
 
 /* ---------------- Participant ---------------- */
@@ -35,10 +41,8 @@ export const saveAiLiteracy = (payload) =>
 
 export const logEvent = (payload) =>
   api.post("/participants/event", payload);
-
 export const markParticipantIncomplete = (payload) =>
   api.post("/participants/mark-incomplete", payload);
-
 /* ---------------- Chat ---------------- */
 
 export const sendChatMessage = (payload) =>
@@ -77,7 +81,6 @@ export const getKpis = (adminKey) =>
     },
   });
 
-  
 export const getParticipants = (
   adminKey,
   search = ""

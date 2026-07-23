@@ -4,19 +4,47 @@ export default function LikertScale({
   points = 7,
   minLabel = "Strongly disagree",
   maxLabel = "Strongly agree",
+  name = "likert-scale",
+  disabled = false,
 }) {
+  const safePoints = Math.max(2, Number(points) || 7);
+
   const scalePoints = Array.from(
-    { length: points },
+    { length: safePoints },
     (_, index) => index + 1
   );
+
+  function handleKeyDown(event, point) {
+    if (disabled) return;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowUp") {
+      event.preventDefault();
+      onChange(Math.min(safePoints, point + 1));
+    }
+
+    if (event.key === "ArrowLeft" || event.key === "ArrowDown") {
+      event.preventDefault();
+      onChange(Math.max(1, point - 1));
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      onChange(1);
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      onChange(safePoints);
+    }
+  }
 
   return (
     <div
       className="questionnaire-likert"
-      style={{ "--likert-points": points }}
+      style={{ "--likert-points": safePoints }}
     >
       <div
-        className="questionnaire-likert-labels"
+        className="questionnaire-likert-grid questionnaire-likert-labels"
         aria-hidden="true"
       >
         <span className="questionnaire-likert-label questionnaire-likert-label-min">
@@ -29,33 +57,43 @@ export default function LikertScale({
       </div>
 
       <div
-        className="questionnaire-likert-options"
+        className="questionnaire-likert-grid questionnaire-likert-options"
         role="radiogroup"
         aria-label={`${minLabel} to ${maxLabel}`}
       >
-        {scalePoints.map((point) => (
-          <button
-            type="button"
-            className={`questionnaire-likert-button btn ${
-              value === point
-                ? "btn-indigo"
-                : "btn-outline-secondary"
-            }`}
-            key={point}
-            role="radio"
-            aria-checked={value === point}
-            aria-label={`${point} of ${points}${
-              point === 1
-                ? `, ${minLabel}`
-                : point === points
-                  ? `, ${maxLabel}`
-                  : ""
-            }`}
-            onClick={() => onChange(point)}
-          >
-            {point}
-          </button>
-        ))}
+        {scalePoints.map((point) => {
+          const selected = Number(value) === point;
+
+          return (
+            <label
+              className={`questionnaire-likert-choice ${
+                selected ? "selected" : ""
+              } ${disabled ? "disabled" : ""}`}
+              key={point}
+            >
+              <input
+                type="radio"
+                name={name}
+                value={point}
+                checked={selected}
+                disabled={disabled}
+                onChange={() => onChange(point)}
+                onKeyDown={(event) => handleKeyDown(event, point)}
+                aria-label={`${point} of ${safePoints}${
+                  point === 1
+                    ? `, ${minLabel}`
+                    : point === safePoints
+                      ? `, ${maxLabel}`
+                      : ""
+                }`}
+              />
+
+              <span className="questionnaire-likert-circle">
+                {point}
+              </span>
+            </label>
+          );
+        })}
       </div>
     </div>
   );
