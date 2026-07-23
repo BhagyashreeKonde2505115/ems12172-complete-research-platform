@@ -37,17 +37,18 @@ export default function IncompleteThankYou() {
             </h1>
 
             <p className="lead">
-              Your session has now ended.
+              Your participant session has been recorded as incomplete.
             </p>
 
             <p className="text-muted">
-              Because no task response was submitted, the remaining survey
-              questions are not required.
+              The remaining questionnaire and interview sections are not
+              required because the guided AI task was not completed.
             </p>
 
             <p className="text-muted">
-              No debrief document will be downloaded for this incomplete
-              session.
+              This may be because no task response was entered or because the
+              external AI service was temporarily unavailable. The reason and
+              the stage reached have been recorded for research-quality checks.
             </p>
 
             {studyId && (
@@ -58,7 +59,9 @@ export default function IncompleteThankYou() {
             )}
 
             <div className="alert alert-info text-start mt-4">
-              You may now close this browser tab.
+              You may close this browser tab. Where the AI service was
+              unavailable, you may start a new session in approximately
+              4–5 hours or tomorrow.
             </div>
 
             <button

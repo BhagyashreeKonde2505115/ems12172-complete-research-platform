@@ -9,6 +9,7 @@ import { useExperiment } from "../context/ExperimentContext.jsx";
 
 import {
   logEvent,
+  markParticipantIncomplete,
   sendChatMessage,
 } from "../utils/api.js";
 
@@ -275,6 +276,9 @@ export default function ChatTask() {
   const [error, setError] =
     useState("");
 
+  const [aiUnavailable, setAiUnavailable] =
+    useState(false);
+
   const bottomRef =
     useRef(null);
 
@@ -402,7 +406,8 @@ export default function ChatTask() {
     if (
       !taskStarted ||
       taskComplete ||
-      transitioning
+      transitioning ||
+      aiUnavailable
     ) {
       return undefined;
     }
@@ -440,6 +445,7 @@ export default function ChatTask() {
     taskStarted,
     taskComplete,
     transitioning,
+    aiUnavailable,
     stageIndex,
   ]);
 
@@ -476,6 +482,7 @@ export default function ChatTask() {
       !taskStarted ||
       taskComplete ||
       transitioning ||
+      aiUnavailable ||
       secondsRemaining > 0 ||
       transitionLockRef.current
     ) {
@@ -642,6 +649,7 @@ export default function ChatTask() {
 
     advanceStage();
   }, [
+    aiUnavailable,
     participantMessageCount,
     secondsRemaining,
     setTaskStage,
@@ -681,6 +689,7 @@ export default function ChatTask() {
     setTransitioning(false);
     setTransitionSecondsRemaining(STAGE_TRANSITION_SECONDS);
     setError("");
+    setAiUnavailable(false);
     setInput("");
 
     transitionLockRef.current =
@@ -769,6 +778,7 @@ export default function ChatTask() {
 
     setInput("");
     setError("");
+    setAiUnavailable(false);
 
     transitionLockRef.current =
       false;
@@ -832,6 +842,7 @@ export default function ChatTask() {
       !cleanInput ||
       loading ||
       taskComplete ||
+      aiUnavailable ||
       !taskStarted
     ) {
       return;
@@ -885,7 +896,7 @@ export default function ChatTask() {
                 message.role
               )
           )
-          .slice(-16)
+          .slice(-8)
           .map(
             (message) => ({
               role:
@@ -917,6 +928,15 @@ export default function ChatTask() {
         throw new Error(
           "The AI assistant returned an empty response."
         );
+      }
+
+      const responseAiAvailable =
+        response?.data?.aiAvailable !== false;
+
+      if (!responseAiAvailable) {
+        setAiUnavailable(true);
+        stageEndTimeRef.current = null;
+        setTransitioning(false);
       }
 
       setMessages(
@@ -955,6 +975,52 @@ export default function ChatTask() {
     } finally {
       setLoading(false);
     }
+  }
+
+
+
+  function resumeAfterAiFailure() {
+    setAiUnavailable(false);
+    setError("");
+
+    stageEndTimeRef.current =
+      Date.now() +
+      Math.max(1, secondsRemaining) * 1000;
+  }
+
+  async function endStudyAfterAiFailure() {
+    try {
+      await markParticipantIncomplete({
+        study_id: studyId,
+        reason: "ai_service_unavailable",
+        stage: currentStage.number,
+        participantMessages: participantMessageCount,
+      });
+    } catch (requestError) {
+      console.error(
+        "Could not mark interrupted session as incomplete:",
+        requestError
+      );
+
+      try {
+        await logEvent({
+          study_id: studyId,
+          eventType: "study_incomplete",
+          payload: {
+            reason: "ai_service_unavailable",
+            stage: currentStage.number,
+            participantMessages: participantMessageCount,
+          },
+        });
+      } catch (eventError) {
+        console.error(
+          "Fallback incomplete-session logging failed:",
+          eventError
+        );
+      }
+    }
+
+    setStep("incomplete-thankyou");
   }
 
   async function continueToQuestionnaire() {
@@ -1006,6 +1072,13 @@ export default function ChatTask() {
     }
 
     try {
+      await markParticipantIncomplete({
+        study_id: studyId,
+        reason: "no_chat_input",
+        stage: currentStage.number,
+        participantMessages: 0,
+      });
+
       await logEvent({
         study_id:
           studyId,
@@ -1369,7 +1442,43 @@ export default function ChatTask() {
                 )}
 
                 <footer className="border-top p-3 p-md-4">
-                  {taskComplete ? (
+                  {aiUnavailable ? (
+                    <div className="ai-unavailable-panel border rounded-4 p-4">
+                      <div className="alert alert-warning mb-4">
+                        <h3 className="h5 fw-bold">
+                          AI service currently unavailable
+                        </h3>
+                        <p className="mb-2">
+                          The external AI service could not continue this
+                          guided task. Please try again in approximately
+                          4–5 hours or tomorrow.
+                        </p>
+                        <p className="mb-0">
+                          This technical interruption has been recorded.
+                          You may retry the most recent message later or end
+                          this incomplete session now.
+                        </p>
+                      </div>
+
+                      <div className="d-flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary btn-lg"
+                          onClick={resumeAfterAiFailure}
+                        >
+                          Try Again Now
+                        </button>
+
+                        <button
+                          type="button"
+                          className="btn btn-outline-danger btn-lg"
+                          onClick={endStudyAfterAiFailure}
+                        >
+                          End Incomplete Session
+                        </button>
+                      </div>
+                    </div>
+                  ) : taskComplete ? (
                     participantMessageCount ===
                     0 ? (
                       <div className="border rounded-4 p-4">
@@ -1450,7 +1559,7 @@ export default function ChatTask() {
                         className="form-control"
                         rows="3"
 
-                        disabled={loading}
+                        disabled={loading || aiUnavailable}
 
                         value={input}
 
@@ -1489,7 +1598,8 @@ export default function ChatTask() {
 
                           disabled={
                             !input.trim() ||
-                            loading
+                            loading ||
+                            aiUnavailable
                           }
                         >
                           {loading

@@ -1026,3 +1026,72 @@ height:32px;
     min-width: 0;
   }
 }
+
+
+/* =========================================================
+   QUESTIONNAIRE LIKERT HEADER ALIGNMENT
+   Uses the same number of columns for labels and scale points,
+   so 5-point and 7-point scales align consistently.
+========================================================= */
+
+.questionnaire-likert {
+  width: 100%;
+  min-width: 0;
+}
+
+.questionnaire-likert-labels,
+.questionnaire-likert-options {
+  display: grid;
+  grid-template-columns: repeat(var(--likert-points), minmax(0, 1fr));
+  column-gap: 0.5rem;
+}
+
+.questionnaire-likert-labels {
+  align-items: end;
+  margin-bottom: 0.55rem;
+  color: #64748b;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.questionnaire-likert-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.questionnaire-likert-label-min {
+  grid-column: 1;
+  justify-self: start;
+  text-align: left;
+}
+
+.questionnaire-likert-label-max {
+  grid-column: var(--likert-points);
+  justify-self: end;
+  text-align: right;
+}
+
+.questionnaire-likert-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding-inline: 0.35rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+@media (max-width: 575.98px) {
+  .questionnaire-likert-labels,
+  .questionnaire-likert-options {
+    column-gap: 0.3rem;
+  }
+
+  .questionnaire-likert-labels {
+    font-size: 0.75rem;
+  }
+
+  .questionnaire-likert-button {
+    min-height: 40px;
+    padding-inline: 0.2rem;
+  }
+}

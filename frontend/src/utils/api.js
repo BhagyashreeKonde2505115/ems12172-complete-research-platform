@@ -36,6 +36,9 @@ export const saveAiLiteracy = (payload) =>
 export const logEvent = (payload) =>
   api.post("/participants/event", payload);
 
+export const markParticipantIncomplete = (payload) =>
+  api.post("/participants/mark-incomplete", payload);
+
 /* ---------------- Chat ---------------- */
 
 export const sendChatMessage = (payload) =>

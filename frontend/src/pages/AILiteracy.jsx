@@ -27,8 +27,39 @@ export default function AILiteracy() {
   const { studyId, aiLiteracy, setAiLiteracy, setStep } = useExperiment();
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState("");
-  const toggle=(key,item)=>setAiLiteracy({...aiLiteracy,[key]:aiLiteracy[key].includes(item)?aiLiteracy[key].filter(x=>x!==item):[...aiLiteracy[key],item]});
-  const complete = useMemo(()=> aiLiteracy.usedBefore && aiLiteracy.frequency && aiLiteracy.duration && aiLiteracy.baselineTrust && literacyItems.every((_,i)=>aiLiteracy.items[i]),[aiLiteracy]);
+  const toggle=(key,item)=>{
+    const alreadySelected=aiLiteracy[key].includes(item);
+    const nextValues=alreadySelected
+      ? aiLiteracy[key].filter(x=>x!==item)
+      : [...aiLiteracy[key],item];
+
+    const nextState={...aiLiteracy,[key]:nextValues};
+
+    if(key==="primaryUses"&&item==="Other"&&alreadySelected){
+      nextState.otherPrimaryUse="";
+    }
+
+    if(key==="tools"&&item==="Other"&&alreadySelected){
+      nextState.otherTool="";
+    }
+
+    setAiLiteracy(nextState);
+  };
+
+  const complete = useMemo(() => {
+    const otherUseComplete =
+      !aiLiteracy.primaryUses.includes("Other") ||
+      Boolean(aiLiteracy.otherPrimaryUse?.trim());
+
+    return Boolean(
+      aiLiteracy.usedBefore &&
+      aiLiteracy.frequency &&
+      aiLiteracy.duration &&
+      aiLiteracy.baselineTrust &&
+      otherUseComplete &&
+      literacyItems.every((_,i)=>aiLiteracy.items[i])
+    );
+  }, [aiLiteracy]);
 
   const submit=async()=>{
     if(!complete||loading)return;
@@ -55,7 +86,25 @@ export default function AILiteracy() {
       <div className="col-md-4"><label className="form-label">How long have you used AI?</label><select className="form-select" value={aiLiteracy.duration} onChange={e=>setAiLiteracy({...aiLiteracy,duration:e.target.value})}><option value="">Select</option>{["Never","Less than 6 months","6–12 months","1–2 years","More than 2 years"].map(x=><option key={x}>{x}</option>)}</select></div>
     </div>
 
-    <fieldset className="mb-4"><legend className="h6 fw-bold">What do you mainly use AI for?</legend><div className="tool-grid">{uses.map(t=><label key={t} className="tool-choice"><input type="checkbox" checked={aiLiteracy.primaryUses.includes(t)} onChange={()=>toggle("primaryUses",t)}/><span>{t}</span></label>)}</div></fieldset>
+    <fieldset className="mb-4">
+      <legend className="h6 fw-bold">What do you mainly use AI for?</legend>
+      <div className="tool-grid">
+        {uses.map(t=><label key={t} className="tool-choice"><input type="checkbox" checked={aiLiteracy.primaryUses.includes(t)} onChange={()=>toggle("primaryUses",t)}/><span>{t}</span></label>)}
+      </div>
+    </fieldset>
+
+    {aiLiteracy.primaryUses.includes("Other") && (
+      <label className="form-label w-100 mb-4">
+        Please describe the other reason you mainly use AI
+        <input
+          className="form-control mt-2"
+          value={aiLiteracy.otherPrimaryUse || ""}
+          onChange={e=>setAiLiteracy({...aiLiteracy,otherPrimaryUse:e.target.value})}
+          maxLength={300}
+          placeholder="Enter another use of AI"
+        />
+      </label>
+    )}
 
     {literacyItems.map((q,i)=><LikertRow key={q} label={q} value={aiLiteracy.items[i]} onChange={v=>setAiLiteracy({...aiLiteracy,items:{...aiLiteracy.items,[i]:v}})}/>)}
     <LikertRow label="Before today, how much did you generally trust AI assistants?" value={aiLiteracy.baselineTrust} onChange={v=>setAiLiteracy({...aiLiteracy,baselineTrust:v})} min="Not at all" max="Completely"/>

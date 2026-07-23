@@ -21,6 +21,7 @@ const initialAiLiteracy = {
   frequency: "",
   duration: "",
   primaryUses: [],
+  otherPrimaryUse: "",
   items: {},
   baselineTrust: "",
 };
