@@ -34,7 +34,7 @@ router.post("/consent", async (req, res) => {
     if (!demographics?.ageBand || !demographics?.gender || !demographics?.status) return res.status(400).json({ error: "All demographic fields are required" });
     const participant = await Participant.findOneAndUpdate(
       { study_id },
-      { $set: { consent: { checked: consentChecks, consentedAt: new Date(), pisVersion: "EMS12277-PIS-v2" }, demographics, status: "consented", updatedAt: new Date() } },
+      { $set: { consent: { checked: consentChecks, consentedAt: new Date(), pisVersion: "EMS12277-PIS-v3" }, demographics, status: "consented", updatedAt: new Date() } },
       { new: true, runValidators: true }
     );
     if (!participant) return res.status(404).json({ error: "Participant not found" });
@@ -62,6 +62,81 @@ router.post("/ai-literacy", async (req, res) => {
   } catch (err) {
     console.error("AI literacy save failed:", err);
     return res.status(500).json({ error: "AI literacy save failed", details: process.env.NODE_ENV === "development" ? err.message : undefined });
+  }
+});
+
+
+router.post("/mark-incomplete", async (req, res) => {
+  try {
+    const {
+      study_id,
+      reason = "participant_did_not_complete",
+      stage = null,
+      participantMessages = 0,
+    } = req.body;
+
+    if (!study_id) {
+      return res.status(400).json({
+        error: "study_id required",
+      });
+    }
+
+    const numericStage = Number(stage);
+    const safeStage =
+      Number.isFinite(numericStage) &&
+      numericStage >= 1 &&
+      numericStage <= 4
+        ? Math.trunc(numericStage)
+        : null;
+
+    const participant = await Participant.findOneAndUpdate(
+      { study_id },
+      {
+        $set: {
+          status: "incomplete",
+          incompleteAt: new Date(),
+          incompleteReason: String(reason || "participant_did_not_complete"),
+          incompleteStage: safeStage,
+          updatedAt: new Date(),
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!participant) {
+      return res.status(404).json({
+        error: "Participant not found",
+      });
+    }
+
+    try {
+      await EventLog.create({
+        study_id,
+        eventType: "study_incomplete",
+        payload: {
+          reason,
+          stage: safeStage,
+          participantMessages: Number(participantMessages) || 0,
+        },
+      });
+    } catch (eventError) {
+      console.error("Incomplete event log failed:", eventError.message);
+    }
+
+    return res.json({
+      success: true,
+      status: participant.status,
+    });
+  } catch (error) {
+    console.error("Mark incomplete failed:", error);
+
+    return res.status(500).json({
+      error: "Could not mark participant as incomplete",
+      details:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : undefined,
+    });
   }
 });
 

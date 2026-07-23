@@ -1,284 +1,511 @@
 "use strict";
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { getSystemPrompt } = require("./promptService");
+const {
+  getSystemPrompt,
+  normaliseStage,
+} = require("./promptService");
 
 /*
- * Use only API keys and Google projects that you own or are authorised to use.
- * This provides resilience across authorised projects; it must not be used to
- * evade Google-imposed quotas or terms.
+ * Gemini service tuned for temporary 503 demand spikes and slow responses.
+ *
+ * Required:
+ *   npm install @google/genai
+ *
+ * Environment:
+ *   GEMINI_API_KEYS=key_one,key_two,key_three
+ *   GEMINI_MODEL=<a model currently available to your projects>
+ *
+ * Recommended:
+ *   GEMINI_REQUEST_TIMEOUT_MS=45000
+ *   GEMINI_TOTAL_TIMEOUT_MS=140000
+ *   GEMINI_MAX_HISTORY_MESSAGES=4
+ *   GEMINI_MAX_HISTORY_CHARS=600
+ *   GEMINI_MAX_OUTPUT_TOKENS=350
  */
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
-const REQUEST_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS || 30000);
-const DEFAULT_COOLDOWN_MS = Number(process.env.GEMINI_KEY_COOLDOWN_MS || 60000);
-const MAX_HISTORY_MESSAGES = Number(process.env.GEMINI_MAX_HISTORY_MESSAGES || 8);
-const MAX_HISTORY_CHARS_PER_MESSAGE = Number(process.env.GEMINI_MAX_HISTORY_CHARS || 1800);
-const MAX_LATEST_MESSAGE_CHARS = 5000;
+const MODEL = String(process.env.GEMINI_MODEL || "").trim();
+
+const REQUEST_TIMEOUT_MS = boundedNumber(
+  process.env.GEMINI_REQUEST_TIMEOUT_MS ||
+    process.env.GEMINI_TIMEOUT_MS,
+  10000,
+  90000,
+  45000
+);
+
+const TOTAL_TIMEOUT_MS = boundedNumber(
+  process.env.GEMINI_TOTAL_TIMEOUT_MS,
+  30000,
+  170000,
+  140000
+);
+
+const MAX_HISTORY_MESSAGES = boundedNumber(
+  process.env.GEMINI_MAX_HISTORY_MESSAGES,
+  2,
+  8,
+  4
+);
+
+const MAX_HISTORY_CHARS = boundedNumber(
+  process.env.GEMINI_MAX_HISTORY_CHARS,
+  250,
+  2000,
+  600
+);
+
+const MAX_OUTPUT_TOKENS = boundedNumber(
+  process.env.GEMINI_MAX_OUTPUT_TOKENS,
+  128,
+  1000,
+  350
+);
+
+const RETRIES_PER_KEY = boundedNumber(
+  process.env.GEMINI_RETRIES_PER_KEY,
+  0,
+  2,
+  1
+);
+
+const API_KEYS = loadApiKeys();
+
+let GoogleGenAIClass = null;
+let nextKeyIndex = 0;
+
+if (!MODEL) {
+  console.warn(
+    "GEMINI_MODEL is missing. Add a currently supported model to backend/.env."
+  );
+}
+
+if (!API_KEYS.length) {
+  console.warn(
+    "No Gemini API key configured. Set GEMINI_API_KEYS or GEMINI_API_KEY."
+  );
+}
+
+function boundedNumber(value, min, max, fallback) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+
+  return Math.max(min, Math.min(max, Math.trunc(parsed)));
+}
 
 function loadApiKeys() {
-  const multipleKeys = String(process.env.GEMINI_API_KEYS || "")
+  const multiple = String(process.env.GEMINI_API_KEYS || "")
     .split(",")
     .map((key) => key.trim())
     .filter(Boolean);
 
-  const singleKey = String(process.env.GEMINI_API_KEY || "").trim();
-  return [...new Set([...multipleKeys, ...(singleKey ? [singleKey] : [])])];
+  const single = String(
+    process.env.GEMINI_API_KEY || ""
+  ).trim();
+
+  return [
+    ...new Set([
+      ...multiple,
+      ...(single ? [single] : []),
+    ]),
+  ];
 }
 
-const API_KEYS = loadApiKeys();
-const keyCooldownUntil = new Map();
-let nextKeyIndex = 0;
+async function getGoogleGenAIClass() {
+  if (GoogleGenAIClass) {
+    return GoogleGenAIClass;
+  }
 
-if (!API_KEYS.length) {
-  console.warn("No Gemini API key is configured. Set GEMINI_API_KEYS or GEMINI_API_KEY.");
+  const module = await import("@google/genai");
+
+  if (!module.GoogleGenAI) {
+    throw new Error(
+      "The installed @google/genai package does not export GoogleGenAI."
+    );
+  }
+
+  GoogleGenAIClass = module.GoogleGenAI;
+  return GoogleGenAIClass;
 }
 
-function normaliseStage(stage) {
-  const numericStage = Number(stage);
-  if (!Number.isFinite(numericStage)) return 1;
-  return Math.max(1, Math.min(4, Math.trunc(numericStage)));
-}
-
-function truncateText(value, maxLength) {
+function truncate(value, maxLength) {
   const text = String(value || "").trim();
-  return text.length <= maxLength ? text : `${text.slice(0, maxLength)}…`;
-}
 
-function normaliseHistory(history = []) {
-  if (!Array.isArray(history)) return [];
+  if (text.length <= maxLength) {
+    return text;
+  }
 
-  return history
-    .filter((entry) => entry && ["user", "assistant", "ai", "model"].includes(entry.role))
-    .map((entry) => ({
-      role: ["assistant", "ai", "model"].includes(entry.role) ? "Assistant" : "Participant",
-      text: truncateText(entry.text || entry.content || "", MAX_HISTORY_CHARS_PER_MESSAGE),
-    }))
-    .filter((entry) => entry.text)
-    .slice(-MAX_HISTORY_MESSAGES);
+  return `${text.slice(0, maxLength)}…`;
 }
 
 function formatHistory(history = []) {
-  const cleanHistory = normaliseHistory(history);
-  if (!cleanHistory.length) return "No previous conversation.";
-  return cleanHistory.map((entry) => `${entry.role}: ${entry.text}`).join("\n\n");
+  if (!Array.isArray(history)) {
+    return "None.";
+  }
+
+  const messages = history
+    .filter(
+      (entry) =>
+        entry &&
+        ["user", "assistant", "ai", "model"].includes(entry.role)
+    )
+    .map((entry) => ({
+      role: ["assistant", "ai", "model"].includes(entry.role)
+        ? "Assistant"
+        : "Participant",
+      text: truncate(
+        entry.text || entry.content || "",
+        MAX_HISTORY_CHARS
+      ),
+    }))
+    .filter((entry) => entry.text)
+    .slice(-MAX_HISTORY_MESSAGES);
+
+  if (!messages.length) {
+    return "None.";
+  }
+
+  return messages
+    .map((entry) => `${entry.role}: ${entry.text}`)
+    .join("\n\n");
 }
 
-function buildPrompt({ condition, history, message, stage }) {
+function buildPrompt(condition, history, message, stage) {
   const safeStage = normaliseStage(stage);
-  const cleanMessage = truncateText(message, MAX_LATEST_MESSAGE_CHARS);
 
   return [
     getSystemPrompt(condition, safeStage),
     "",
-    "Recent conversation:",
+    "Recent context:",
     formatHistory(history),
     "",
-    "Participant's latest message:",
-    cleanMessage,
+    "Latest participant message:",
+    truncate(message, 5000),
     "",
-    "Answer the participant's latest message directly.",
-    "Use the recent conversation only where relevant.",
-    "Apply the current stage naturally without repeating generic stage guidance.",
-    "Return clear Markdown.",
+    "Respond directly and naturally.",
   ].join("\n");
 }
 
 function getErrorMessage(error) {
-  return String(error?.message || error?.response?.data?.error?.message || error || "");
+  return String(
+    error?.message ||
+      error?.response?.data?.error?.message ||
+      error ||
+      ""
+  );
 }
 
-function getErrorStatus(error) {
-  const directStatus = Number(error?.status || error?.statusCode || error?.response?.status);
-  if (Number.isFinite(directStatus)) return directStatus;
+function getStatus(error) {
+  const direct = Number(
+    error?.status ||
+      error?.statusCode ||
+      error?.response?.status
+  );
 
-  const match = getErrorMessage(error).match(/\b(400|401|403|404|408|409|429|500|502|503|504)\b/);
+  if (Number.isFinite(direct)) {
+    return direct;
+  }
+
+  const match = getErrorMessage(error).match(
+    /\b(400|401|403|404|408|409|429|500|502|503|504)\b/
+  );
+
   return match ? Number(match[1]) : null;
 }
 
-function isQuotaOrRateLimitError(error) {
-  const status = getErrorStatus(error);
+function isRetryable(error) {
+  const status = getStatus(error);
   const message = getErrorMessage(error).toLowerCase();
-  return status === 429 || message.includes("quota") || message.includes("rate limit") || message.includes("resource_exhausted") || message.includes("too many requests");
-}
 
-function isTransientProviderError(error) {
-  const status = getErrorStatus(error);
-  const message = getErrorMessage(error).toLowerCase();
   return (
-    isQuotaOrRateLimitError(error) ||
-    [408, 500, 502, 503, 504].includes(status) ||
+    [408, 429, 500, 502, 503, 504].includes(status) ||
+    message.includes("high demand") ||
+    message.includes("quota") ||
+    message.includes("rate limit") ||
+    message.includes("resource_exhausted") ||
+    message.includes("temporarily unavailable") ||
     message.includes("timeout") ||
     message.includes("timed out") ||
-    message.includes("temporarily unavailable") ||
     message.includes("network") ||
     message.includes("fetch failed") ||
     message.includes("socket")
   );
 }
 
-function isConfigurationError(error) {
-  const status = getErrorStatus(error);
+function isModelConfigurationError(error) {
+  const status = getStatus(error);
   const message = getErrorMessage(error).toLowerCase();
+
   return (
-    [400, 401, 403, 404].includes(status) ||
-    message.includes("api key not valid") ||
-    message.includes("invalid api key") ||
-    message.includes("permission denied") ||
-    message.includes("model not found") ||
-    message.includes("is not found")
+    status === 400 ||
+    status === 404 ||
+    message.includes("model") &&
+      (
+        message.includes("not found") ||
+        message.includes("no longer available") ||
+        message.includes("not supported")
+      )
   );
 }
 
-function getRetryDelayMs(error) {
-  const message = getErrorMessage(error);
-  const matches = [
-    message.match(/retry(?:\s+in)?\s+([\d.]+)\s*s/i),
-    message.match(/"retryDelay"\s*:\s*"([\d.]+)s"/i),
-  ].filter(Boolean);
-
-  if (matches.length) {
-    const seconds = Number(matches[0][1]);
-    if (Number.isFinite(seconds)) {
-      return Math.max(1000, Math.min(seconds * 1000, 10 * 60 * 1000));
-    }
-  }
-
-  return DEFAULT_COOLDOWN_MS;
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
-function markKeyOnCooldown(keyIndex, error) {
-  const cooldownMs = getRetryDelayMs(error);
-  keyCooldownUntil.set(keyIndex, Date.now() + cooldownMs);
-  console.warn(`Gemini key index ${keyIndex + 1} placed on cooldown for approximately ${Math.ceil(cooldownMs / 1000)} seconds.`);
-}
+async function withTimeout(promise, timeoutMs) {
+  let timer;
 
-function getAvailableKeyIndexes() {
-  const now = Date.now();
-  const indexes = API_KEYS.map((_, index) => index);
-  const ordered = [...indexes.slice(nextKeyIndex), ...indexes.slice(0, nextKeyIndex)];
-
-  return ordered.filter((index) => (keyCooldownUntil.get(index) || 0) <= now);
-}
-
-function withTimeout(promise, timeoutMs) {
-  let timeoutId;
   const timeoutPromise = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => {
-      const error = new Error(`Gemini request timed out after ${timeoutMs} ms.`);
+    timer = setTimeout(() => {
+      const error = new Error(
+        `Gemini request timed out after ${timeoutMs} ms.`
+      );
+
       error.status = 408;
       reject(error);
     }, timeoutMs);
   });
 
-  return Promise.race([
-    promise.finally(() => clearTimeout(timeoutId)),
-    timeoutPromise,
-  ]);
+  try {
+    return await Promise.race([
+      promise,
+      timeoutPromise,
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
-async function generateWithKey(apiKey, prompt) {
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: MODEL,
-    generationConfig: {
-      temperature: 0.7,
-      topP: 0.9,
-      maxOutputTokens: Number(process.env.GEMINI_MAX_OUTPUT_TOKENS || 700),
-    },
-  });
+async function generateWithKey(
+  apiKey,
+  prompt,
+  timeoutMs
+) {
+  if (!MODEL) {
+    throw new Error(
+      "GEMINI_MODEL is not configured. Set it to a model available to your project."
+    );
+  }
 
-  const result = await withTimeout(model.generateContent(prompt), REQUEST_TIMEOUT_MS);
-  const response = await result.response;
-  const text = String(response.text() || "").trim();
+  const GoogleGenAI = await getGoogleGenAIClass();
+  const client = new GoogleGenAI({ apiKey });
 
-  if (!text) throw new Error("Gemini returned an empty response.");
+  const response = await withTimeout(
+    client.models.generateContent({
+      model: MODEL,
+      contents: prompt,
+      config: {
+        maxOutputTokens: MAX_OUTPUT_TOKENS,
+      },
+    }),
+    timeoutMs
+  );
+
+  const text = String(
+    response?.text || ""
+  ).trim();
+
+  if (!text) {
+    throw new Error(
+      "Gemini returned an empty response."
+    );
+  }
+
   return text;
 }
 
-async function callGeminiWithKeyFailover(prompt) {
-  if (!API_KEYS.length) throw new Error("No Gemini API keys are configured.");
+function orderedKeyIndexes() {
+  const indexes = API_KEYS.map(
+    (_, index) => index
+  );
 
-  let availableKeyIndexes = getAvailableKeyIndexes();
+  return [
+    ...indexes.slice(nextKeyIndex),
+    ...indexes.slice(0, nextKeyIndex),
+  ];
+}
 
-  if (!availableKeyIndexes.length) {
-    const earliestIndex = API_KEYS
-      .map((_, index) => ({ index, until: keyCooldownUntil.get(index) || 0 }))
-      .sort((a, b) => a.until - b.until)[0]?.index;
-
-    if (earliestIndex !== undefined) availableKeyIndexes = [earliestIndex];
+async function callGemini(prompt) {
+  if (!API_KEYS.length) {
+    throw new Error(
+      "No Gemini API keys are configured."
+    );
   }
 
+  const startedAt = Date.now();
   let lastError = null;
 
-  for (const keyIndex of availableKeyIndexes) {
-    try {
-      const text = await generateWithKey(API_KEYS[keyIndex], prompt);
-      nextKeyIndex = (keyIndex + 1) % API_KEYS.length;
-      keyCooldownUntil.delete(keyIndex);
-      console.info(`Gemini response generated with key index ${keyIndex + 1} of ${API_KEYS.length}, model ${MODEL}.`);
-      return text;
-    } catch (error) {
-      lastError = error;
-      const status = getErrorStatus(error);
+  for (const keyIndex of orderedKeyIndexes()) {
+    for (
+      let attempt = 0;
+      attempt <= RETRIES_PER_KEY;
+      attempt += 1
+    ) {
+      const elapsed = Date.now() - startedAt;
+      const remaining = TOTAL_TIMEOUT_MS - elapsed;
 
-      console.error(
-        `Gemini key index ${keyIndex + 1} failed${status ? ` (${status})` : ""}:`,
-        getErrorMessage(error)
-      );
+      if (remaining <= 1500) {
+        const error = new Error(
+          `Gemini total request window exceeded ${TOTAL_TIMEOUT_MS} ms.`
+        );
 
-      if (isQuotaOrRateLimitError(error) || isTransientProviderError(error)) {
-        markKeyOnCooldown(keyIndex, error);
-        continue;
+        error.status = 408;
+        throw lastError || error;
       }
 
-      if (isConfigurationError(error)) continue;
-      throw error;
+      /*
+       * Do not let one slow key consume the whole browser request window.
+       */
+      const attemptTimeout = Math.min(
+        REQUEST_TIMEOUT_MS,
+        Math.max(1000, remaining - 1000)
+      );
+
+      try {
+        const text = await generateWithKey(
+          API_KEYS[keyIndex],
+          prompt,
+          attemptTimeout
+        );
+
+        nextKeyIndex =
+          (keyIndex + 1) %
+          API_KEYS.length;
+
+        console.info(
+          `Gemini succeeded with key ${keyIndex + 1}/${API_KEYS.length}, attempt ${attempt + 1}, model ${MODEL}.`
+        );
+
+        return text;
+      } catch (error) {
+        lastError = error;
+
+        console.error(
+          `Gemini key ${keyIndex + 1}/${API_KEYS.length}, attempt ${attempt + 1} failed${
+            getStatus(error)
+              ? ` (${getStatus(error)})`
+              : ""
+          }:`,
+          getErrorMessage(error)
+        );
+
+        /*
+         * A model-level 404/400 will fail for every key.
+         */
+        if (isModelConfigurationError(error)) {
+          throw error;
+        }
+
+        if (!isRetryable(error)) {
+          /*
+           * Invalid credentials can be key-specific, so try the next key.
+           */
+          break;
+        }
+
+        if (attempt < RETRIES_PER_KEY) {
+          /*
+           * Brief exponential backoff for temporary high demand.
+           */
+          const waitMs =
+            1500 * 2 ** attempt;
+
+          if (
+            Date.now() -
+              startedAt +
+              waitMs <
+            TOTAL_TIMEOUT_MS
+          ) {
+            await delay(waitMs);
+          }
+        }
+      }
     }
   }
 
-  throw lastError || new Error("All configured Gemini keys failed.");
+  throw (
+    lastError ||
+    new Error(
+      "All configured Gemini keys failed."
+    )
+  );
 }
 
 function participantFallback(error) {
-  if (isQuotaOrRateLimitError(error)) {
+  const status = getStatus(error);
+
+  if (status === 503) {
     return [
-      "## The AI assistant is temporarily busy",
+      "## AI service currently busy",
       "",
-      "The service has reached its current usage limit.",
+      "The external AI service is experiencing unusually high demand.",
       "",
-      "Please wait a short while and send your message again.",
+      "Please wait a few minutes and try your message again. If the issue continues, you may return later today.",
+    ].join("\n");
+  }
+
+  if (status === 429) {
+    return [
+      "## AI service usage limit reached",
+      "",
+      "The external AI service has reached its current usage limit.",
+      "",
+      "Please try again later today or tomorrow.",
     ].join("\n");
   }
 
   return [
-    "## The AI assistant is temporarily unavailable",
+    "## AI service currently unavailable",
     "",
-    "A response could not be generated at this time.",
+    "The external AI service could not generate a response at this time.",
     "",
-    "Please try sending your message again.",
+    "Please try your message again. If the issue continues, return later today.",
   ].join("\n");
 }
 
-async function generateAIReply(condition, history = [], message, stage = 1) {
-  const cleanMessage = String(message || "").trim();
-  if (!cleanMessage) throw new Error("A participant message is required.");
+async function generateAIReply(
+  condition,
+  history = [],
+  message,
+  stage = 1
+) {
+  const cleanMessage = String(
+    message || ""
+  ).trim();
 
-  const safeStage = normaliseStage(stage);
+  if (!cleanMessage) {
+    throw new Error(
+      "A participant message is required."
+    );
+  }
 
   try {
-    const prompt = buildPrompt({
+    const prompt = buildPrompt(
       condition,
       history,
-      message: cleanMessage,
-      stage: safeStage,
-    });
+      cleanMessage,
+      stage
+    );
 
-    return await callGeminiWithKeyFailover(prompt);
+    console.info(
+      `Gemini prompt size: ${prompt.length} characters; history limit: ${MAX_HISTORY_MESSAGES} messages.`
+    );
+
+    return await callGemini(prompt);
   } catch (error) {
-    console.error("Gemini final error:", getErrorMessage(error));
+    console.error(
+      "Gemini final error:",
+      getErrorMessage(error)
+    );
+
     return participantFallback(error);
   }
 }
 
-module.exports = { generateAIReply };
+module.exports = {
+  generateAIReply,
+};

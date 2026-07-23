@@ -20,11 +20,7 @@ const STAGE_NAMES = {
 
 function normaliseStage(value) {
   const numericStage = Number(value);
-
-  if (!Number.isFinite(numericStage)) {
-    return 1;
-  }
-
+  if (!Number.isFinite(numericStage)) return 1;
   return Math.max(1, Math.min(4, Math.trunc(numericStage)));
 }
 
@@ -40,9 +36,7 @@ function getTextMetrics(text) {
 }
 
 function normaliseHistory(history) {
-  if (!Array.isArray(history)) {
-    return [];
-  }
+  if (!Array.isArray(history)) return [];
 
   return history
     .filter(
@@ -55,7 +49,7 @@ function normaliseHistory(history) {
       text: String(entry.text || entry.content || "").trim(),
     }))
     .filter((entry) => entry.text)
-    .slice(-16);
+    .slice(-8);
 }
 
 router.post("/message", async (req, res) => {
@@ -110,20 +104,14 @@ router.post("/message", async (req, res) => {
       },
     });
 
-    /*
-     * Important:
-     * Send the participant's original message to Gemini.
-     * Stage instructions are supplied by promptService.js.
-     * Do not prepend stage guidance to the participant message.
-     */
-    const reply = await generateAIReply(
+    const aiResult = await generateAIReply(
       participant.condition,
       safeHistory,
       cleanMessage,
       safeStage
     );
 
-    const cleanReply = String(reply || "").trim();
+    const cleanReply = String(aiResult?.text || "").trim();
 
     if (!cleanReply) {
       throw new Error("The AI service returned an empty response.");
@@ -138,30 +126,62 @@ router.post("/message", async (req, res) => {
       text: cleanReply,
       condition: participant.condition,
       stage: safeStage,
+      provider: aiResult.provider || "gemini",
+      model: aiResult.model || "",
+      providerStatus: aiResult.providerStatus || "success",
+      errorCategory: aiResult.errorCategory || "",
+      aiAvailable: aiResult.aiAvailable !== false,
+      keyIndex: aiResult.keyIndex || null,
       metrics: {
         ...assistantMetrics,
         responseLatencyMs: latency,
       },
     });
 
-    await Participant.updateOne(
-      { study_id: cleanStudyId },
-      {
-        $set: {
-          status: "chat",
-          updatedAt: new Date(),
-        },
-      }
-    );
+    if (aiResult.aiAvailable === false) {
+      await Participant.updateOne(
+        { study_id: cleanStudyId },
+        {
+          $set: {
+            status: "ai_unavailable",
+            aiUnavailableAt: new Date(),
+            incompleteReason:
+              aiResult.errorCategory || "ai_service_unavailable",
+            incompleteStage: safeStage,
+            updatedAt: new Date(),
+          },
+        }
+      );
+    } else {
+      await Participant.updateOne(
+        { study_id: cleanStudyId },
+        {
+          $set: {
+            status: "chat",
+            chatStartedAt: participant.chatStartedAt || new Date(),
+            updatedAt: new Date(),
+          },
+        }
+      );
+    }
 
     try {
       await EventLog.create({
         study_id: cleanStudyId,
-        eventType: "chat_message",
+        eventType:
+          aiResult.aiAvailable === false
+            ? "ai_service_unavailable"
+            : "chat_message",
         payload: {
           stage: safeStage,
           stageName: STAGE_NAMES[safeStage],
           latencyMs: latency,
+          aiAvailable: aiResult.aiAvailable !== false,
+          provider: aiResult.provider || "gemini",
+          model: aiResult.model || "",
+          providerStatus: aiResult.providerStatus || "success",
+          errorCategory: aiResult.errorCategory || "",
+          keyIndex: aiResult.keyIndex || null,
           userCharCount: userMetrics.charCount,
           userWordCount: userMetrics.wordCount,
           assistantCharCount: assistantMetrics.charCount,
@@ -180,6 +200,9 @@ router.post("/message", async (req, res) => {
       condition: participant.condition,
       stage: safeStage,
       stageName: STAGE_NAMES[safeStage],
+      aiAvailable: aiResult.aiAvailable !== false,
+      providerStatus: aiResult.providerStatus || "success",
+      errorCategory: aiResult.errorCategory || "",
     });
   } catch (error) {
     console.error("CHAT ROUTE ERROR:", error);

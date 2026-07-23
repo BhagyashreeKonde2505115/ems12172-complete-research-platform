@@ -24,7 +24,40 @@ const ChatMessageSchema = new mongoose.Schema(
       enum: ["WC", "NI"],
     },
 
-    // NEW: stage of the guided task
+    provider: {
+      type: String,
+      default: "",
+    },
+
+    model: {
+      type: String,
+      default: "",
+    },
+
+    providerStatus: {
+      type: String,
+      enum: ["success", "quota_unavailable", "service_unavailable"],
+      default: "success",
+      index: true,
+    },
+
+    errorCategory: {
+      type: String,
+      default: "",
+    },
+
+    aiAvailable: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+
+    keyIndex: {
+      type: Number,
+      default: null,
+    },
+
+    // Stage of the guided task
     stage: {
       type: Number,
       min: 1,

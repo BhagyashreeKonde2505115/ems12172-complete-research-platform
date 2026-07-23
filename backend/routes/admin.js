@@ -166,6 +166,31 @@ function calculateSUS(
   return score * 2.5;
 }
 
+
+function calculateUXLite(questionnaire = {}) {
+  const ease = Number(questionnaire.ux_lite_ease);
+  const usefulness = Number(questionnaire.ux_lite_usefulness);
+
+  if (!Number.isFinite(ease) || !Number.isFinite(usefulness)) {
+    return "";
+  }
+
+  const easeScore = (ease - 1) * 25;
+  const usefulnessScore = (usefulness - 1) * 25;
+
+  return ((easeScore + usefulnessScore) / 2).toFixed(2);
+}
+
+function estimateSUSFromUXLite(questionnaire = {}) {
+  const ease = Number(questionnaire.ux_lite_ease);
+
+  if (!Number.isFinite(ease)) {
+    return "";
+  }
+
+  return (-2.279 + 19.2 * ease).toFixed(2);
+}
+
 function flattenQuestionnaire(
   questionnaire = {}
 ) {
@@ -212,36 +237,24 @@ function flattenQuestionnaire(
       questionnaire.safety_4
     ),
 
-    sus_1: safe(
-      questionnaire.sus_1
+    ux_lite_ease: safe(
+      questionnaire.ux_lite_ease
     ),
-    sus_2: safe(
-      questionnaire.sus_2
+
+    ux_lite_usefulness: safe(
+      questionnaire.ux_lite_usefulness
     ),
-    sus_3: safe(
-      questionnaire.sus_3
-    ),
-    sus_4: safe(
-      questionnaire.sus_4
-    ),
-    sus_5: safe(
-      questionnaire.sus_5
-    ),
-    sus_6: safe(
-      questionnaire.sus_6
-    ),
-    sus_7: safe(
-      questionnaire.sus_7
-    ),
-    sus_8: safe(
-      questionnaire.sus_8
-    ),
-    sus_9: safe(
-      questionnaire.sus_9
-    ),
-    sus_10: safe(
-      questionnaire.sus_10
-    ),
+
+    legacy_sus_1: safe(questionnaire.sus_1),
+    legacy_sus_2: safe(questionnaire.sus_2),
+    legacy_sus_3: safe(questionnaire.sus_3),
+    legacy_sus_4: safe(questionnaire.sus_4),
+    legacy_sus_5: safe(questionnaire.sus_5),
+    legacy_sus_6: safe(questionnaire.sus_6),
+    legacy_sus_7: safe(questionnaire.sus_7),
+    legacy_sus_8: safe(questionnaire.sus_8),
+    legacy_sus_9: safe(questionnaire.sus_9),
+    legacy_sus_10: safe(questionnaire.sus_10),
 
     warmth: safe(
       questionnaire.warmth
@@ -263,6 +276,22 @@ function flattenQuestionnaire(
     ),
     use_2: safe(
       questionnaire.use_2
+    ),
+
+    supportive: safe(
+      questionnaire.supportive
+    ),
+
+    professional: safe(
+      questionnaire.professional
+    ),
+
+    clarity: safe(
+      questionnaire.clarity
+    ),
+
+    follow_up: safe(
+      questionnaire.follow_up
     ),
   };
 }
@@ -337,6 +366,16 @@ function getAiLiteracyFields(
       literacy.duration
     ),
 
+    aiPrimaryUses: Array.isArray(
+      literacy.primaryUses
+    )
+      ? literacy.primaryUses.join("; ")
+      : "",
+
+    aiOtherPrimaryUse: safe(
+      literacy.otherPrimaryUse
+    ),
+
     baselineAITrust: safe(
       literacy.baselineTrust
     ),
@@ -381,6 +420,31 @@ function buildChatRows(chats) {
 
         text:
           chat.text,
+
+        provider: safe(
+          chat.provider
+        ),
+
+        model: safe(
+          chat.model
+        ),
+
+        providerStatus: safe(
+          chat.providerStatus
+        ),
+
+        errorCategory: safe(
+          chat.errorCategory
+        ),
+
+        aiAvailable:
+          chat.aiAvailable === undefined
+            ? ""
+            : chat.aiAvailable,
+
+        keyIndex: safe(
+          chat.keyIndex
+        ),
 
         charCount:
           safe(
@@ -943,6 +1007,22 @@ function buildParticipantRows({
         status:
           participant.status,
 
+        incompleteReason: safe(
+          participant.incompleteReason
+        ),
+
+        incompleteStage: safe(
+          participant.incompleteStage
+        ),
+
+        incompleteAt: safe(
+          participant.incompleteAt
+        ),
+
+        aiUnavailableAt: safe(
+          participant.aiUnavailableAt
+        ),
+
         ageBand: safe(
           participant
             .demographics
@@ -996,7 +1076,17 @@ function buildParticipantRows({
           questionnaire.safety_4,
         ]),
 
-        sus_score:
+        ux_lite_score:
+          calculateUXLite(
+            questionnaire
+          ),
+
+        estimated_sus_from_ux_lite:
+          estimateSUSFromUXLite(
+            questionnaire
+          ),
+
+        legacy_sus_score:
           calculateSUS(
             questionnaire
           ),

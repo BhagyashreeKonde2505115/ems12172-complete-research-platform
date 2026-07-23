@@ -25,6 +25,8 @@ const ParticipantSchema = new mongoose.Schema(
         "started",
         "consented",
         "chat",
+        "ai_unavailable",
+        "incomplete",
         "questionnaire",
         "ai_literacy",
         "interview",
@@ -96,6 +98,11 @@ const ParticipantSchema = new mongoose.Schema(
         default: [],
       },
 
+      otherPrimaryUse: {
+        type: String,
+        default: "",
+      },
+
       items: {
         type: mongoose.Schema.Types.Mixed,
         default: {},
@@ -136,6 +143,28 @@ const ParticipantSchema = new mongoose.Schema(
 
     chatCompletedAt: {
       type: Date,
+      default: null,
+    },
+
+    aiUnavailableAt: {
+      type: Date,
+      default: null,
+    },
+
+    incompleteAt: {
+      type: Date,
+      default: null,
+    },
+
+    incompleteReason: {
+      type: String,
+      default: "",
+    },
+
+    incompleteStage: {
+      type: Number,
+      min: 1,
+      max: 4,
       default: null,
     },
 
